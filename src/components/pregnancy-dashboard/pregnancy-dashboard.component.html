@@ -1,0 +1,97 @@
+<main class="p-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">Dashboard da Gestação</h1>
+      <p class="text-gray-500 mt-1">Visão geral do acompanhamento pré-natal.</p>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+      <!-- Gestational Age (Giant Number) -->
+      <div class="md:col-span-2 xl:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-center items-center text-center">
+        <h3 class="text-lg font-medium text-gray-500">Idade Gestacional (IG)</h3>
+        <p class="text-6xl font-extrabold text-sky-500 my-2">
+          {{ patient().gestationalAge.weeks }}
+          <span class="text-4xl font-semibold text-sky-400">semanas e</span>
+          {{ patient().gestationalAge.days }}
+          <span class="text-4xl font-semibold text-sky-400">dias</span>
+        </p>
+        <div class="text-md text-gray-600">
+          <span class="font-semibold">DPP:</span> {{ patient().edd }}
+        </div>
+      </div>
+
+      <!-- Risk Status -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-center items-center">
+        <h3 class="text-lg font-medium text-gray-500 mb-3">Risco Gestacional</h3>
+        @if (patient().riskStatus === 'Alto Risco') {
+          <span class="px-6 py-2 text-lg font-bold text-red-700 bg-red-100 rounded-full border border-red-200">
+            Alto Risco
+          </span>
+        } @else {
+          <span class="px-6 py-2 text-lg font-bold text-teal-700 bg-teal-100 rounded-full border border-teal-200">
+            Baixo Risco
+          </span>
+        }
+      </div>
+
+      <!-- Maternal Weight Chart -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        <h3 class="text-lg font-medium text-gray-700">Curva de Peso Materno</h3>
+        <div #weightChart class="w-full h-40"></div>
+      </div>
+
+      <!-- Uterine Height Chart -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        <h3 class="text-lg font-medium text-gray-700">Curva de Altura Uterina</h3>
+        <div #uterineHeightChart class="w-full h-40"></div>
+      </div>
+      
+      <!-- Latest Measurements -->
+      <div class="xl:row-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Últimos Registros</h3>
+        <p class="text-sm text-gray-400 mb-4">{{ patient().latestMeasurements.date }}</p>
+        <div class="space-y-4">
+          <div class="flex justify-between items-baseline p-3 bg-gray-50 rounded-lg">
+            <span class="text-gray-500 font-medium">Peso</span>
+            <span class="text-gray-800 font-bold text-lg">{{ patient().latestMeasurements.weight }}</span>
+          </div>
+          <div class="flex justify-between items-baseline p-3 bg-gray-50 rounded-lg">
+            <span class="text-gray-500 font-medium">Pressão Arterial</span>
+            <span class="text-gray-800 font-bold text-lg">{{ patient().latestMeasurements.bloodPressure }}</span>
+          </div>
+          <div class="flex justify-between items-baseline p-3 bg-gray-50 rounded-lg">
+            <span class="text-gray-500 font-medium">BCF</span>
+            <span class="text-gray-800 font-bold text-lg">{{ patient().latestMeasurements.fetalHeartRate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Items -->
+      <div class="md:col-span-2 xl:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Pendências e Alertas</h3>
+        <ul class="space-y-3">
+          @for(item of patient().pendingItems; track item.text) {
+            <li class="flex items-center p-3 rounded-lg" [class]="item.urgent ? 'bg-orange-50' : 'bg-gray-50'">
+              <div class="flex-shrink-0" [class]="item.urgent ? 'text-orange-500' : 'text-sky-500'">
+                @if (item.urgent) {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z" />
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                }
+              </div>
+              <span class="ml-3 text-gray-700 font-medium">{{ item.text }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</main>

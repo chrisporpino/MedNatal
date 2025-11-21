@@ -1,0 +1,12 @@
+<div class="flex h-screen bg-gray-100 overflow-hidden">
+  <!-- Left Column: Global Navigation -->
+  <app-left-nav [isCollapsed]="isNavCollapsed()" (navToggled)="toggleNav()"></app-left-nav>
+
+  <!-- Central Column: Patient Context -->
+  <app-patient-context></app-patient-context>
+
+  <!-- Right Column: Content -->
+  <div class="flex-1 overflow-y-auto">
+    <router-outlet></router-outlet>
+  </div>
+</div>

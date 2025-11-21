@@ -1,0 +1,30 @@
+<div class="flex-shrink-0 w-72 xl:w-80 bg-white border-r border-gray-200 transition-all duration-300 h-full">
+  <div class="p-8">
+    <!-- Patient Header -->
+    <div class="flex flex-col items-center text-center space-y-4">
+      <img [src]="patient().avatarUrl" alt="Foto da Paciente" class="w-28 h-28 rounded-full object-cover ring-4 ring-offset-2 ring-teal-300">
+      <div class="pt-2">
+        <h2 class="text-2xl font-bold text-gray-800">{{ patient().name }}</h2>
+        <p class="text-sm text-gray-500">ID: 893.452.129-00</p>
+      </div>
+    </div>
+    
+    <!-- Contextual Navigation -->
+    <nav class="mt-10">
+      <ul class="space-y-2">
+        @for(item of contextNavItems(); track item.label) {
+          <li>
+            <a [routerLink]="item.path !== '#' ? [item.path] : null"
+               routerLinkActive
+               #rla="routerLinkActive"
+               [class]="'flex items-center px-4 py-3 text-md font-medium rounded-lg transition-all duration-200 ' + (rla.isActive ? 'bg-teal-50 text-teal-600 border-l-4 border-teal-500' : 'text-gray-600 hover:bg-gray-100')"
+               [class.pointer-events-none]="item.path === '#'"
+               [class.opacity-50]="item.path === '#'">
+              <span>{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+  </div>
+</div>
