@@ -1,0 +1,164 @@
+<main class="pt-8 pr-8 pb-8 pl-4">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Dados Gerais e Gestação Atual</h1>
+        <p class="text-gray-500 mt-1">Informações essenciais da paciente e da gestação.</p>
+      </div>
+       <button class="flex items-center bg-teal-500 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:bg-teal-600 transition-colors duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" />
+        </svg>
+        Salvar Alterações
+      </button>
+    </div>
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left Column -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Identification and Base History -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+           <h3 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-3">Identificação e Histórico Base</h3>
+           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <!-- Identification -->
+              <div>
+                  <label class="block font-medium text-gray-500">Nome Completo</label>
+                  <p class="mt-1 text-gray-800">{{ patient().name }}</p>
+              </div>
+               <div>
+                  <label class="block font-medium text-gray-500">Idade</label>
+                  <p class="mt-1 text-gray-800">{{ patient().age }} anos</p>
+              </div>
+               <div>
+                  <label class="block font-medium text-gray-500">Profissão</label>
+                  <p class="mt-1 text-gray-800">{{ patient().profession }}</p>
+              </div>
+              <div>
+                  <label class="block font-medium text-gray-500">Contato</label>
+                  <p class="mt-1 text-gray-800">{{ patient().contact.phone }} / {{ patient().contact.email }}</p>
+              </div>
+              <div class="md:col-span-2">
+                  <label class="block font-medium text-gray-500">Endereço</label>
+                  <p class="mt-1 text-gray-800">{{ patient().address }}</p>
+              </div>
+              <!-- Parity -->
+               <div class="md:col-span-2 grid grid-cols-3 gap-4 pt-4 border-t">
+                  <div>
+                      <label class="block font-medium text-gray-500">Gestas (G)</label>
+                      <p class="mt-1 text-gray-800 font-bold text-lg">{{ patient().parity.gestations }}</p>
+                  </div>
+                   <div>
+                      <label class="block font-medium text-gray-500">Partos (P)</label>
+                      <p class="mt-1 text-gray-800 font-bold text-lg">{{ patient().parity.partities }}</p>
+                  </div>
+                   <div>
+                      <label class="block font-medium text-gray-500">Abortos (A)</label>
+                      <p class="mt-1 text-gray-800 font-bold text-lg">{{ patient().parity.abortions }}</p>
+                  </div>
+              </div>
+               <!-- Health History -->
+              <div class="md:col-span-2">
+                  <label class="block font-medium text-gray-500">Alergias</label>
+                  <p class="mt-1 text-gray-800">{{ patient().allergies }}</p>
+              </div>
+               <div class="md:col-span-2">
+                  <label class="block font-medium text-gray-500">Medicações em Uso</label>
+                  <p class="mt-1 text-gray-800">{{ patient().medicationsInUse }}</p>
+              </div>
+               <div class="md:col-span-2">
+                  <label class="block font-medium text-gray-500">Doenças Crônicas</label>
+                  <p class="mt-1 text-gray-800">{{ patient().chronicDiseases }}</p>
+              </div>
+           </div>
+        </div>
+
+        <!-- Obstetric History -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <div class="flex justify-between items-center mb-4 border-b pb-3">
+             <h3 class="text-lg font-semibold text-gray-800">Histórico de Partos Anteriores</h3>
+             <button class="text-sm font-semibold text-teal-600 px-3 py-1 rounded-md hover:bg-teal-50 transition-colors">+ Adicionar Parto</button>
+          </div>
+          <table class="w-full text-sm text-left text-gray-600">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3">Bebê</th>
+                <th scope="col" class="px-4 py-3">IG Nasc.</th>
+                <th scope="col" class="px-4 py-3">Peso</th>
+                <th scope="col" class="px-4 py-3">Tipo de Parto</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for(item of patient().obstetricHistory; track item.babyName) {
+                <tr class="bg-white border-b hover:bg-gray-50">
+                  <td class="px-4 py-3 font-medium text-gray-900">{{ item.babyName }}</td>
+                  <td class="px-4 py-3">{{ item.gestationalAgeAtBirth }}</td>
+                  <td class="px-4 py-3">{{ item.babyWeight }}</td>
+                  <td class="px-4 py-3">{{ item.deliveryType }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="lg:col-span-1">
+        <!-- Gestational Calculator -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+           <h3 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-3">Cálculo da Idade Gestacional (IG) e DPP</h3>
+           <div class="space-y-4">
+              <!-- DUM Input -->
+              <div>
+                  <label for="dum" class="block text-sm font-medium text-gray-700">DUM (Data da Última Menstruação)</label>
+                  <input type="date" id="dum" [value]="patient().gestationalCalculator.dum" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  <div class="flex items-center mt-2">
+                    <input id="dum-confiavel" type="checkbox" [checked]="patient().gestationalCalculator.dumIsReliable" class="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+                    <label for="dum-confiavel" class="ml-2 block text-sm text-gray-900">DUM Confiável</label>
+                  </div>
+              </div>
+              <!-- USG Input -->
+               <div>
+                  <label for="usg-data" class="block text-sm font-medium text-gray-700">Data do 1º USG</label>
+                  <input type="date" id="usg-data" [value]="patient().gestationalCalculator.firstUltrasoundDate" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+              </div>
+               <div>
+                  <label for="usg-ig" class="block text-sm font-medium text-gray-700">IG no 1º USG (Semanas e Dias)</label>
+                  <input type="text" id="usg-ig" [value]="patient().gestationalCalculator.firstUltrasoundGA" placeholder="Ex: 8s 1d" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+              </div>
+
+              <!-- Results -->
+              <div class="pt-4 space-y-3">
+                  <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                      <p class="text-xs font-medium text-gray-500">Resultado pela DUM</p>
+                      <p class="text-sm font-semibold text-gray-800">DPP: {{ dumResult().dpp }} | IG Hoje: {{ dumResult().ig }}</p>
+                  </div>
+                   <div class="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <p class="text-xs font-medium text-blue-600">Resultado Corrigido pelo 1º USG</p>
+                      <p class="text-sm font-semibold text-blue-800">DPP: {{ usgResult().dpp }} | IG Hoje: {{ usgResult().ig }}</p>
+                  </div>
+              </div>
+              
+               <!-- Official Basis Selection -->
+               <div class="pt-4">
+                 <label class="block text-sm font-semibold text-gray-700 mb-2">Base de Cálculo Oficial:</label>
+                 <div class="flex space-x-4">
+                    <button (click)="setCalculationBasis('DUM')"
+                            [class]="'flex-1 text-center px-4 py-2 text-sm font-medium border rounded-md transition-colors ' + (calculationBasis() === 'DUM' ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50')">
+                      DUM
+                    </button>
+                     <button (click)="setCalculationBasis('USG')"
+                            [class]="'flex-1 text-center px-4 py-2 text-sm font-medium border rounded-md transition-colors ' + (calculationBasis() === 'USG' ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50')">
+                      1º USG
+                    </button>
+                 </div>
+               </div>
+           </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>

@@ -19,8 +19,68 @@ export interface Consulta {
   notes: string;
 }
 
+export interface Parity {
+  gestations: number;
+  partities: number;
+  abortions: number;
+}
+
+export interface ObstetricHistory {
+  babyName: string;
+  gestationalAgeAtBirth: string;
+  babyWeight: string;
+  deliveryType: string;
+}
+
+export interface Exam {
+  id: number;
+  date: string;
+  type: string;
+  status: 'Normal' | 'Alterado' | 'Pendente';
+  mainResult: string;
+  reportUrl?: string;
+  gestationalAgeAtCollection: string;
+}
+
+export interface EcoData {
+  id: number;
+  date: string;
+  gestationalAge: number; // in weeks
+  estimatedFetalWeight: number; // in grams
+  fetalHeartRate: number;
+  placentaPresentation: string;
+  reportUrl?: string;
+}
+
+export interface FetalGrowthPercentile {
+  week: number;
+  p10: number;
+  p50: number;
+  p90: number;
+}
+
 export interface Patient {
+  id: string;
   name: string;
+  age: number;
+  profession: string;
+  contact: {
+    phone: string;
+    email: string;
+  },
+  address: string;
+  parity: Parity;
+  allergies: string;
+  medicationsInUse: string;
+  chronicDiseases: string;
+  obstetricHistory: ObstetricHistory[];
+  gestationalCalculator: {
+    dum: string;
+    dumIsReliable: boolean;
+    firstUltrasoundDate: string;
+    firstUltrasoundGA: string; // Gestational age in weeks/days
+    officialCalculationBasis: 'DUM' | 'USG';
+  };
   avatarUrl: string;
   gestationalAge: {
     weeks: number;
@@ -38,6 +98,10 @@ export interface Patient {
     date: string;
   };
   consultas: Consulta[];
+  exams: Exam[];
+  examAlert?: { message: string };
+  ecos: EcoData[];
+  fetalGrowthPercentiles: FetalGrowthPercentile[];
 }
 
 @Injectable({
@@ -45,8 +109,34 @@ export interface Patient {
 })
 export class PatientDataService {
   private readonly mockPatient: Patient = {
+    id: '893.452.129-00',
     name: 'Maria Clara da Silva',
-    avatarUrl: 'https://picsum.photos/seed/patient1/100/100',
+    age: 31,
+    profession: 'Arquiteta',
+    contact: {
+      phone: '(11) 98765-4321',
+      email: 'maria.clara@email.com'
+    },
+    address: 'Rua das Flores, 123, São Paulo, SP',
+    parity: {
+      gestations: 2,
+      partities: 1,
+      abortions: 0,
+    },
+    allergies: 'Penicilina',
+    medicationsInUse: 'Vitamina pré-natal',
+    chronicDiseases: 'Hipotireoidismo (controlado)',
+    obstetricHistory: [
+      { babyName: 'João Pedro', gestationalAgeAtBirth: '39s 2d', babyWeight: '3.450g', deliveryType: 'Parto Normal' }
+    ],
+    gestationalCalculator: {
+      dum: '2023-11-20',
+      dumIsReliable: true,
+      firstUltrasoundDate: '2024-01-15',
+      firstUltrasoundGA: '8s 1d',
+      officialCalculationBasis: 'DUM'
+    },
+    avatarUrl: 'https://lh3.googleusercontent.com/rd-d/ALs6j_GTgGrj5OgGxWadGarNIQXFDNQIpno0IdGal0RBOawaQrBi3T2x_xG51kAqnKm3SW_KMsyU0fQx2iJWVRIqIgZjeXpLjrA_XBUQzp9QvLoTDh4ab81ZPeFi3uJHqRUs4dOaOlua8T6triPmfrregZILgDaTtGEdxCsk_2C35RUaTjE6S_zv6djMVohrX4x5UvXemPrO4Kx9TsEZqjV1ugKE0ZAY5udeb4SxMBzwcJXPlR_QIVdhz5O34voaP91qnR1hZ4-Z6cwR2TiSGNx8xDBt8wxySq6YUoomRyDhQ7DaRWsSQiKDNxqWN5GUm11mBGgNJo03aHQK43WpsB5HYWaDseblWETLfbQath4MgqT1Kzm-T-nBAsBqQyL8bMEVjSkZUABlxDNerGgYMXyqKkHPdT-nCKPZQu4cmC3XhGwhB9ixvVOVlDtyz7XbBY4fdI28fhrG2LqiQroLdef6s-iYkBqbhQEWBkeK41l2BmvqVBQRJtE2fLRqROk4NcXlCG_CtEw__M2NIZVIghbxY5YY18JkZ6vjbOQYTRjev_zo61RrDP79q0qadIVCM2ew2erTLH5EroYRjZx_M0gdGkOh0whcPn0mv0xv93mbFjsruMEEt2VSFge3pXkVFE95QEUVM25CAQrb0yWyDvHXqvk5MOAUIjSmDe7SZnkQQrIo-YIck2WoBEpjfhMnvPfhrdzBKwmRPrxhgfAHugXs2rlc1k96J_vdumSWLBjmS1Iv9MW3kBBo3O50uATwfPQX5zNX4JLCS86Cg2MHF3SsaP9pGXY0qrl-AKNITA7g_cK3QaDhLrux4MO6tgmnz_RzaffVqD7J0x37Y5WROu1AZhfydStoby2aM2wLnRzNmHMXhlombPMd7nZU1FfZWbzQO99bUIKeuEi7USpyrXmL0hq4c0GTjvVfAfQvQULbdWj8Yrfu0oEWIUvw-FY0JfoCZ5w4WKwRaNWypoKFP0sNN-MGqGGpaMFKLtioSvXIDYswD_zg20dSE9YeD71ERqg6hj1eqbnV26Y72MEL9wXCaT6ZLvqftSOwIew-82Up_gMdUXQ3SqRzUiXASQKVAbYGGtRPv09foU_oxIGRo_2CGa8_dQpYEeQoo9ytERWqRe5tCx2thYtfiKc0kzx4S3tvQtE5yawSfiHjxrplLOVYd6__eypsATHtoLWZIx6GNrQJcxmwGxx6BRhBFYyifcx0XSy7ZgfzoF1LcZla34xD9Q36iR0gwC5uaA=w1920-h912?auditContext=thumbnail&auditContext=prefetch',
     gestationalAge: {
       weeks: 32,
       days: 5,
@@ -108,6 +198,31 @@ export class PatientDataService {
         details: { weight: '68.2 kg', bloodPressure: '120/75 mmHg', uterineHeight: 29, fetalHeartRate: 148, fetalMovements: 'Presente' },
         notes: 'Realizado teste de Glicemia de jejum, resultado normal. Paciente orientada sobre sinais de trabalho de parto prematuro. Segue em acompanhamento de rotina.'
       },
+    ],
+    exams: [
+      { id: 1, date: '05 de Julho de 2024', type: 'Glicemia de Jejum', status: 'Alterado', mainResult: '105 mg/dL', reportUrl: '#', gestationalAgeAtCollection: 'IG 31 Semanas' },
+      { id: 2, date: '05 de Julho de 2024', type: 'Urocultura', status: 'Normal', mainResult: 'Negativo', reportUrl: '#', gestationalAgeAtCollection: 'IG 31 Semanas' },
+      { id: 3, date: '20 de Junho de 2024', type: 'Ecografia Morfológica', status: 'Pendente', mainResult: 'Aguardando laudo', gestationalAgeAtCollection: 'IG 29 Semanas' },
+      { id: 4, date: '15 de Maio de 2024', type: 'Sorologia (HIV, VDRL, Hep B/C)', status: 'Normal', mainResult: 'Não Reagente', reportUrl: '#', gestationalAgeAtCollection: 'IG 24 Semanas' },
+      { id: 5, date: '10 de Março de 2024', type: 'Hemograma Completo', status: 'Normal', mainResult: 'Hb: 12.1 g/dL', reportUrl: '#', gestationalAgeAtCollection: 'IG 15 Semanas' },
+    ],
+    examAlert: {
+      message: 'ALERTA: Glicemia de Jejum Elevada na Semana 31.'
+    },
+    ecos: [
+      { id: 1, date: '2024-01-15', gestationalAge: 8, estimatedFetalWeight: 15, fetalHeartRate: 170, placentaPresentation: 'N/A' },
+      { id: 2, date: '2024-03-25', gestationalAge: 18, estimatedFetalWeight: 240, fetalHeartRate: 155, placentaPresentation: 'Cefálica' },
+      { id: 3, date: '2024-05-20', gestationalAge: 26, estimatedFetalWeight: 900, fetalHeartRate: 148, placentaPresentation: 'Cefálica' },
+      { id: 4, date: '2024-07-08', gestationalAge: 32, estimatedFetalWeight: 1850, fetalHeartRate: 145, placentaPresentation: 'Cefálica' },
+    ],
+    fetalGrowthPercentiles: [
+      { week: 14, p10: 80, p50: 100, p90: 120 }, { week: 16, p10: 140, p50: 190, p90: 240 },
+      { week: 18, p10: 220, p50: 280, p90: 340 }, { week: 20, p10: 320, p50: 400, p90: 480 },
+      { week: 22, p10: 450, p50: 550, p90: 650 }, { week: 24, p10: 600, p50: 750, p90: 900 },
+      { week: 26, p10: 780, p50: 980, p90: 1180 }, { week: 28, p10: 1000, p50: 1250, p90: 1500 },
+      { week: 30, p10: 1250, p50: 1550, p90: 1850 }, { week: 32, p10: 1500, p50: 1900, p90: 2300 },
+      { week: 34, p10: 1800, p50: 2300, p90: 2800 }, { week: 36, p10: 2100, p50: 2700, p90: 3300 },
+      { week: 38, p10: 2400, p50: 3100, p90: 3800 }, { week: 40, p10: 2700, p50: 3500, p90: 4300 }
     ]
   };
 

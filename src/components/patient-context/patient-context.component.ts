@@ -20,9 +20,9 @@ export class PatientContextComponent {
 
   contextNavItems = signal<ContextNavItem[]>([
     { label: 'Dashboard', path: 'dashboard' },
-    { label: 'Dados Gerais', path: '#' },
-    { label: 'Gestação Atual', path: '#' },
-    { label: 'Exames', path: '#' },
+    { label: 'Dados Gerais', path: 'dados-gerais' },
+    { label: 'Exames', path: 'exames' },
+    { label: 'ECOs', path: 'ecos' },
     { label: 'Consultas', path: 'consultas' },
     { label: 'Parto', path: '#' },
   ]);

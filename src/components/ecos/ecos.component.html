@@ -1,0 +1,134 @@
+<main class="pt-8 pr-8 pb-8 pl-4 relative">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">ECOs e Curva de Crescimento Fetal</h1>
+      <p class="text-gray-500 mt-1">Análise longitudinal do crescimento e registros de ultrassom.</p>
+    </div>
+
+    <!-- Growth Curve Chart -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-8">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Curva de Crescimento Fetal (Peso Estimado)</h3>
+      <div #growthChart class="w-full h-96"></div>
+    </div>
+
+    <!-- ECO History and Actions -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+      <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h3 class="text-lg font-semibold text-gray-800">Histórico de Ultrassons (ECO)</h3>
+        <button (click)="openModal()" class="flex items-center bg-teal-500 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-teal-600 transition-colors duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Adicionar Novo ECO
+        </button>
+      </div>
+
+      <!-- ECOs Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3">Data do ECO</th>
+              <th scope="col" class="px-4 py-3">IG Medida</th>
+              <th scope="col" class="px-4 py-3">Peso Estimado (PFE)</th>
+              <th scope="col" class="px-4 py-3">BCF</th>
+              <th scope="col" class="px-4 py-3">Placenta/Apresentação</th>
+              <th scope="col" class="px-4 py-3 text-center">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for(eco of patient().ecos; track eco.id; let i = $index) {
+            <tr class="bg-white border-b hover:bg-gray-50">
+              <td class="px-4 py-3 font-medium text-gray-900">{{ eco.date }}</td>
+              <td class="px-4 py-3">{{ eco.gestationalAge }} semanas</td>
+              <td class="px-4 py-3">{{ eco.estimatedFetalWeight }}g</td>
+              <td class="px-4 py-3">{{ eco.fetalHeartRate }} bpm</td>
+              <td class="px-4 py-3">{{ eco.placentaPresentation }}</td>
+              <td class="px-4 py-3">
+                <div class="flex justify-center items-center space-x-2">
+                  <button class="text-gray-400 hover:text-teal-600 p-1 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg></button>
+                  <button class="text-gray-400 hover:text-blue-600 p-1 rounded-md"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg></button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit ECO Modal -->
+  @if (isModalOpen()) {
+  <div class="fixed inset-0 z-30 flex items-center justify-center" (click)="closeModal()">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <!-- Panel -->
+    <div class="relative bg-white w-full max-w-2xl rounded-2xl shadow-xl p-8" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Registro de Ultrassom</h2>
+          <p class="text-sm text-gray-500">Adicione os dados da biometria fetal.</p>
+        </div>
+        <button (click)="closeModal()" class="p-2 -m-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <!-- Form -->
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="eco-date" class="block text-sm font-medium text-gray-700 mb-1">Data do ECO</label>
+            <input type="date" id="eco-date" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+          </div>
+          <div>
+            <label for="eco-ig" class="block text-sm font-medium text-gray-700 mb-1">IG Medida (semanas)</label>
+            <input type="number" id="eco-ig" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div>
+            <label for="pfe" class="block text-sm font-medium text-gray-700 mb-1">Peso Fetal Estimado (g)</label>
+            <input type="number" id="pfe" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+          </div>
+           <div>
+            <label for="bcf" class="block text-sm font-medium text-gray-700 mb-1">BCF (bpm)</label>
+            <input type="number" id="bcf" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+          </div>
+        </div>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div>
+            <label for="ca" class="block text-sm font-medium text-gray-700 mb-1">Circunferência Abdominal (mm)</label>
+            <input type="number" id="ca" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+          </div>
+           <div>
+            <label for="ila" class="block text-sm font-medium text-gray-700 mb-1">Líquido Amniótico - ILA (cm)</label>
+            <input type="number" id="ila" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+          </div>
+        </div>
+         <div>
+            <label for="apresentacao" class="block text-sm font-medium text-gray-700 mb-1">Apresentação</label>
+            <select id="apresentacao" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-white">
+                <option>Cefálica</option>
+                <option>Pélvica</option>
+                <option>Transversa</option>
+            </select>
+        </div>
+        <div>
+           <label for="observacao" class="block text-sm font-medium text-gray-700 mb-1">Observações (Placenta/Doppler)</label>
+           <textarea id="observacao" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"></textarea>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div class="mt-8 flex justify-end space-x-3">
+        <button (click)="closeModal()" class="px-5 py-2.5 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
+        <button class="px-5 py-2.5 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600">Salvar e Plotar na Curva</button>
+      </div>
+    </div>
+  </div>
+  }
+
+</main>
