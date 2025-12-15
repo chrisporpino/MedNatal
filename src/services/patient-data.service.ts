@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, Signal } from '@angular/core';
 
 export interface Consulta {
   id: number;
@@ -21,7 +21,7 @@ export interface Consulta {
 
 export interface Parity {
   gestations: number;
-  partities: number;
+  parities: number;
   abortions: number;
 }
 
@@ -104,6 +104,15 @@ export interface Patient {
   fetalGrowthPercentiles: FetalGrowthPercentile[];
 }
 
+export interface PatientListItem {
+  id: string;
+  name: string;
+  gestationalAge: string;
+  edd: string; // Expected date of delivery
+  risk: 'Alto Risco' | 'Baixo Risco';
+}
+
+
 @Injectable({
   providedIn: 'root',
 })
@@ -120,7 +129,7 @@ export class PatientDataService {
     address: 'Rua das Flores, 123, São Paulo, SP',
     parity: {
       gestations: 2,
-      partities: 1,
+      parities: 1,
       abortions: 0,
     },
     allergies: 'Penicilina',
@@ -200,11 +209,11 @@ export class PatientDataService {
       },
     ],
     exams: [
-      { id: 1, date: '05 de Julho de 2024', type: 'Glicemia de Jejum', status: 'Alterado', mainResult: '105 mg/dL', reportUrl: '#', gestationalAgeAtCollection: 'IG 31 Semanas' },
-      { id: 2, date: '05 de Julho de 2024', type: 'Urocultura', status: 'Normal', mainResult: 'Negativo', reportUrl: '#', gestationalAgeAtCollection: 'IG 31 Semanas' },
-      { id: 3, date: '20 de Junho de 2024', type: 'Ecografia Morfológica', status: 'Pendente', mainResult: 'Aguardando laudo', gestationalAgeAtCollection: 'IG 29 Semanas' },
-      { id: 4, date: '15 de Maio de 2024', type: 'Sorologia (HIV, VDRL, Hep B/C)', status: 'Normal', mainResult: 'Não Reagente', reportUrl: '#', gestationalAgeAtCollection: 'IG 24 Semanas' },
-      { id: 5, date: '10 de Março de 2024', type: 'Hemograma Completo', status: 'Normal', mainResult: 'Hb: 12.1 g/dL', reportUrl: '#', gestationalAgeAtCollection: 'IG 15 Semanas' },
+      { id: 1, date: '2024-07-05', type: 'Glicemia de Jejum', status: 'Alterado', mainResult: '105 mg/dL', reportUrl: '#', gestationalAgeAtCollection: 'IG 31 Semanas' },
+      { id: 2, date: '2024-07-05', type: 'Urocultura', status: 'Normal', mainResult: 'Negativo', reportUrl: '#', gestationalAgeAtCollection: 'IG 31 Semanas' },
+      { id: 3, date: '2024-06-20', type: 'Ecografia Morfológica', status: 'Pendente', mainResult: 'Aguardando laudo', gestationalAgeAtCollection: 'IG 29 Semanas' },
+      { id: 4, date: '2024-05-15', type: 'Sorologia (HIV, VDRL, Hep B/C)', status: 'Normal', mainResult: 'Não Reagente', reportUrl: '#', gestationalAgeAtCollection: 'IG 24 Semanas' },
+      { id: 5, date: '2024-03-10', type: 'Hemograma Completo', status: 'Normal', mainResult: 'Hb: 12.1 g/dL', reportUrl: '#', gestationalAgeAtCollection: 'IG 15 Semanas' },
     ],
     examAlert: {
       message: 'ALERTA: Glicemia de Jejum Elevada na Semana 31.'
@@ -226,7 +235,97 @@ export class PatientDataService {
     ]
   };
 
-  getPatientData() {
-    return signal(this.mockPatient);
+  private readonly mockPatientList: PatientListItem[] = [
+    { id: '893.452.129-00', name: 'Maria Clara da Silva', gestationalAge: '32s 5d', edd: '25/08/2024', risk: 'Alto Risco' },
+    { id: '123.456.789-01', name: 'Ana Beatriz Souza', gestationalAge: '28s 1d', edd: '22/09/2024', risk: 'Baixo Risco' },
+    { id: '987.654.321-02', name: 'Juliana Pereira Lima', gestationalAge: '35s 0d', edd: '04/08/2024', risk: 'Baixo Risco' },
+    { id: '456.789.123-03', name: 'Camila Rodrigues Alves', gestationalAge: '38s 2d', edd: '18/07/2024', risk: 'Alto Risco' },
+    { id: '321.654.987-04', name: 'Fernanda Costa Oliveira', gestationalAge: '15s 4d', edd: '15/12/2024', risk: 'Baixo Risco' },
+  ];
+  
+  private patientListSignal = signal<PatientListItem[]>(this.mockPatientList);
+  private patientSignal = signal<Patient>(this.mockPatient);
+
+  getPatientData(): Signal<Patient> {
+    return this.patientSignal.asReadonly();
+  }
+
+  updatePatient(updatedData: Partial<Patient>): void {
+    this.patientSignal.update(currentPatient => {
+      const newPatient = { ...currentPatient, ...updatedData };
+      if (updatedData.parity) {
+        newPatient.parity = { ...currentPatient.parity, ...updatedData.parity };
+      }
+       if (updatedData.contact) {
+        newPatient.contact = { ...currentPatient.contact, ...updatedData.contact };
+      }
+      if (updatedData.gestationalCalculator) {
+        newPatient.gestationalCalculator = { ...currentPatient.gestationalCalculator, ...updatedData.gestationalCalculator };
+      }
+      return newPatient;
+    });
+  }
+  
+  addObstetricHistory(history: ObstetricHistory): void {
+    this.patientSignal.update(p => ({
+      ...p,
+      obstetricHistory: [...p.obstetricHistory, history]
+    }));
+  }
+
+  updateObstetricHistory(index: number, history: ObstetricHistory): void {
+    this.patientSignal.update(p => {
+      const updatedHistory = [...p.obstetricHistory];
+      updatedHistory[index] = history;
+      return { ...p, obstetricHistory: updatedHistory };
+    });
+  }
+
+  deleteObstetricHistory(index: number): void {
+    this.patientSignal.update(p => ({
+      ...p,
+      obstetricHistory: p.obstetricHistory.filter((_, i) => i !== index)
+    }));
+  }
+
+  addExam(exam: Omit<Exam, 'id'>): void {
+    this.patientSignal.update(p => {
+      const newId = p.exams.length > 0 ? Math.max(...p.exams.map(e => e.id)) + 1 : 1;
+      const newExam: Exam = { ...exam, id: newId };
+      return {
+        ...p,
+        exams: [newExam, ...p.exams].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      };
+    });
+  }
+
+  updateExam(updatedExam: Exam): void {
+    this.patientSignal.update(p => {
+      const index = p.exams.findIndex(e => e.id === updatedExam.id);
+      if (index > -1) {
+        const updatedExams = [...p.exams];
+        updatedExams[index] = updatedExam;
+        return { 
+          ...p, 
+          exams: updatedExams.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        };
+      }
+      return p;
+    });
+  }
+
+  deleteExam(examId: number): void {
+    this.patientSignal.update(p => ({
+      ...p,
+      exams: p.exams.filter(e => e.id !== examId)
+    }));
+  }
+
+  getPatientList(): Signal<PatientListItem[]> {
+    return this.patientListSignal.asReadonly();
+  }
+
+  addPatient(patient: PatientListItem): void {
+    this.patientListSignal.update(list => [patient, ...list]);
   }
 }

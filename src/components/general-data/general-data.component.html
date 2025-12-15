@@ -1,17 +1,9 @@
-<main class="pt-8 pr-8 pb-8 pl-4">
+<main class="mt-[56px] pr-8 pb-8 pl-4">
   <div class="max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">Dados Gerais e Gestação Atual</h1>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Dados Gerais e Gestação Atual</h1>
         <p class="text-gray-500 mt-1">Informações essenciais da paciente e da gestação.</p>
-      </div>
-       <button class="flex items-center bg-teal-500 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:bg-teal-600 transition-colors duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" />
-        </svg>
-        Salvar Alterações
-      </button>
     </div>
 
     <!-- Main Grid Layout -->
@@ -20,66 +12,159 @@
       <!-- Left Column -->
       <div class="lg:col-span-2 space-y-8">
         <!-- Identification and Base History -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-           <h3 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-3">Identificação e Histórico Base</h3>
-           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <!-- Identification -->
-              <div>
-                  <label class="block font-medium text-gray-500">Nome Completo</label>
-                  <p class="mt-1 text-gray-800">{{ patient().name }}</p>
-              </div>
-               <div>
-                  <label class="block font-medium text-gray-500">Idade</label>
-                  <p class="mt-1 text-gray-800">{{ patient().age }} anos</p>
-              </div>
-               <div>
-                  <label class="block font-medium text-gray-500">Profissão</label>
-                  <p class="mt-1 text-gray-800">{{ patient().profession }}</p>
-              </div>
-              <div>
-                  <label class="block font-medium text-gray-500">Contato</label>
-                  <p class="mt-1 text-gray-800">{{ patient().contact.phone }} / {{ patient().contact.email }}</p>
-              </div>
-              <div class="md:col-span-2">
-                  <label class="block font-medium text-gray-500">Endereço</label>
-                  <p class="mt-1 text-gray-800">{{ patient().address }}</p>
-              </div>
-              <!-- Parity -->
-               <div class="md:col-span-2 grid grid-cols-3 gap-4 pt-4 border-t">
+        
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-lg font-semibold text-gray-800">Identificação e Histórico Base</h3>
+              @if (isPatientInfoEditing()) {
+                <div class="flex items-center space-x-3">
+                  <button type="button" (click)="cancelPatientInfoEdit()" class="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
+                  <button type="submit" (click)="savePatientInfo()" [disabled]="patientInfoForm.invalid" class="px-4 py-2 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300 disabled:cursor-not-allowed">Salvar</button>
+                </div>
+              } @else {
+                <button type="button" (click)="enablePatientInfoEdit()" class="flex items-center text-sm font-semibold text-sky-600 px-3 py-1 rounded-md hover:bg-sky-50 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path></svg>
+                  Editar
+                </button>
+              }
+            </div>
+
+            @if(isPatientInfoEditing()) {
+              <form [formGroup]="patientInfoForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                  <!-- Form Inputs for Editing -->
                   <div>
-                      <label class="block font-medium text-gray-500">Gestas (G)</label>
-                      <p class="mt-1 text-gray-800 font-bold text-lg">{{ patient().parity.gestations }}</p>
+                      <label class="block font-medium text-gray-700">Nome Completo</label>
+                      <input type="text" formControlName="name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                       [class.border-red-500]="patientInfoForm.get('name')?.invalid && patientInfoForm.get('name')?.touched">
+                      @if(patientInfoForm.get('name')?.hasError('required') && patientInfoForm.get('name')?.touched) {
+                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+                      }
                   </div>
-                   <div>
-                      <label class="block font-medium text-gray-500">Partos (P)</label>
-                      <p class="mt-1 text-gray-800 font-bold text-lg">{{ patient().parity.partities }}</p>
+                  <div>
+                      <label class="block font-medium text-gray-700">Idade</label>
+                      <input type="number" formControlName="age" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
-                   <div>
-                      <label class="block font-medium text-gray-500">Abortos (A)</label>
-                      <p class="mt-1 text-gray-800 font-bold text-lg">{{ patient().parity.abortions }}</p>
+                  <div>
+                      <label class="block font-medium text-gray-700">Profissão</label>
+                      <input type="text" formControlName="profession" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
+                  <div formGroupName="contact">
+                      <label class="block font-medium text-gray-700">Contato</label>
+                      <div class="flex space-x-2 mt-1">
+                        <input type="text" formControlName="phone" placeholder="Telefone" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        <input type="email" formControlName="email" placeholder="Email" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                         [class.border-red-500]="patientInfoForm.get('contact.email')?.invalid && patientInfoForm.get('contact.email')?.touched">
+                      </div>
+                       @if(patientInfoForm.get('contact.email')?.hasError('email') && patientInfoForm.get('contact.email')?.touched) {
+                        <p class="text-xs text-red-600 mt-1">Formato de email inválido.</p>
+                      }
+                  </div>
+                  <div class="md:col-span-2">
+                      <label class="block font-medium text-gray-700">Endereço</label>
+                      <input type="text" formControlName="address" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  </div>
+                  <div class="md:col-span-2 grid grid-cols-3 gap-4 pt-4 border-t" formGroupName="parity">
+                      <div>
+                          <label class="block font-medium text-gray-700">Gestas (G)</label>
+                          <input type="number" formControlName="gestations" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      </div>
+                      <div>
+                          <label class="block font-medium text-gray-700">Partos (P)</label>
+                          <input type="number" formControlName="parities" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      </div>
+                      <div>
+                          <label class="block font-medium text-gray-700">Abortos (A)</label>
+                          <input type="number" formControlName="abortions" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      </div>
+                  </div>
+                  <div class="md:col-span-2">
+                      <label class="block font-medium text-gray-700">Alergias</label>
+                      <input type="text" formControlName="allergies" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  </div>
+                  <div class="md:col-span-2">
+                      <label class="block font-medium text-gray-700">Medicações em Uso</label>
+                      <input type="text" formControlName="medicationsInUse" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  </div>
+                  <div class="md:col-span-2">
+                      <label class="block font-medium text-gray-700">Doenças Crônicas</label>
+                      <input type="text" formControlName="chronicDiseases" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  </div>
+                </div>
+              </form>
+            } @else {
+              <!-- Display Mode -->
+              <div class="space-y-6 text-sm">
+                <!-- Identification Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div>
+                        <p class="text-gray-500">Nome Completo</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Idade</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().age }} anos</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Profissão</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().profession }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Contato</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().contact.phone }} / {{ patient().contact.email }}</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-gray-500">Endereço</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().address }}</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Parity Section -->
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-gray-500">Gestações (G)</p>
+                        <p class="font-bold text-lg text-gray-800 mt-1">{{ patient().parity.gestations }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Partos (P)</p>
+                        <p class="font-bold text-lg text-gray-800 mt-1">{{ patient().parity.parities }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Abortos (A)</p>
+                        <p class="font-bold text-lg text-gray-800 mt-1">{{ patient().parity.abortions }}</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200"></div>
+
+                <!-- Health History -->
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-gray-500">Alergias</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().allergies }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Medicações em Uso</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().medicationsInUse }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">Doenças Crônicas</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ patient().chronicDiseases }}</p>
+                    </div>
+                </div>
               </div>
-               <!-- Health History -->
-              <div class="md:col-span-2">
-                  <label class="block font-medium text-gray-500">Alergias</label>
-                  <p class="mt-1 text-gray-800">{{ patient().allergies }}</p>
-              </div>
-               <div class="md:col-span-2">
-                  <label class="block font-medium text-gray-500">Medicações em Uso</label>
-                  <p class="mt-1 text-gray-800">{{ patient().medicationsInUse }}</p>
-              </div>
-               <div class="md:col-span-2">
-                  <label class="block font-medium text-gray-500">Doenças Crônicas</label>
-                  <p class="mt-1 text-gray-800">{{ patient().chronicDiseases }}</p>
-              </div>
-           </div>
-        </div>
+            }
+
+          </div>
+        
 
         <!-- Obstetric History -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
           <div class="flex justify-between items-center mb-4 border-b pb-3">
              <h3 class="text-lg font-semibold text-gray-800">Histórico de Partos Anteriores</h3>
-             <button class="text-sm font-semibold text-teal-600 px-3 py-1 rounded-md hover:bg-teal-50 transition-colors">+ Adicionar Parto</button>
+             <button (click)="openHistoryModal()" class="text-sm font-semibold text-teal-600 px-3 py-1 rounded-md hover:bg-teal-50 transition-colors">+ Adicionar Parto</button>
           </div>
           <table class="w-full text-sm text-left text-gray-600">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -88,15 +173,26 @@
                 <th scope="col" class="px-4 py-3">IG Nasc.</th>
                 <th scope="col" class="px-4 py-3">Peso</th>
                 <th scope="col" class="px-4 py-3">Tipo de Parto</th>
+                <th scope="col" class="px-4 py-3 text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
-              @for(item of patient().obstetricHistory; track item.babyName) {
+              @for(item of patient().obstetricHistory; track $index; let i = $index) {
                 <tr class="bg-white border-b hover:bg-gray-50">
                   <td class="px-4 py-3 font-medium text-gray-900">{{ item.babyName }}</td>
                   <td class="px-4 py-3">{{ item.gestationalAgeAtBirth }}</td>
                   <td class="px-4 py-3">{{ item.babyWeight }}</td>
                   <td class="px-4 py-3">{{ item.deliveryType }}</td>
+                  <td class="px-4 py-3">
+                    <div class="flex justify-center items-center space-x-2">
+                      <button (click)="editHistory(i)" class="text-gray-400 hover:text-blue-600 p-1 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                      </button>
+                      <button (click)="requestDeleteHistory(i)" class="text-gray-400 hover:text-red-600 p-1 rounded-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -107,58 +203,211 @@
       <!-- Right Column -->
       <div class="lg:col-span-1">
         <!-- Gestational Calculator -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-           <h3 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-3">Cálculo da Idade Gestacional (IG) e DPP</h3>
-           <div class="space-y-4">
-              <!-- DUM Input -->
-              <div>
-                  <label for="dum" class="block text-sm font-medium text-gray-700">DUM (Data da Última Menstruação)</label>
-                  <input type="date" id="dum" [value]="patient().gestationalCalculator.dum" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
-                  <div class="flex items-center mt-2">
-                    <input id="dum-confiavel" type="checkbox" [checked]="patient().gestationalCalculator.dumIsReliable" class="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+        
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div class="flex justify-between items-center mb-6 border-b pb-3">
+              <h3 class="text-lg font-semibold text-gray-800">Cálculo da Idade Gestacional (IG) e DPP</h3>
+              @if (isCalculatorEditing()) {
+                <div class="flex items-center space-x-3">
+                  <button type="button" (click)="cancelCalculatorEdit()" class="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
+                  <button type="button" (click)="saveCalculator()" [disabled]="calculatorForm.invalid" class="px-4 py-2 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300 disabled:cursor-not-allowed">Salvar</button>
+                </div>
+              } @else {
+                <button type="button" (click)="enableCalculatorEdit()" class="flex items-center text-sm font-semibold text-sky-600 px-3 py-1 rounded-md hover:bg-sky-50 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-1.5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path></svg>
+                  Editar
+                </button>
+              }
+            </div>
+            @if(isCalculatorEditing()) {
+              <form [formGroup]="calculatorForm">
+              <div class="space-y-4">
+                  <!-- DUM Input -->
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700">DUM (Data da Última Menstruação)</label>
+                      <input type="date" formControlName="dum" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                       [class.border-red-500]="calculatorForm.get('dum')?.invalid && calculatorForm.get('dum')?.touched">
+                      @if(calculatorForm.get('dum')?.hasError('required') && calculatorForm.get('dum')?.touched) {
+                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+                      }
+                  </div>
+                  <div class="flex items-center">
+                    <input id="dum-confiavel" type="checkbox" formControlName="dumIsReliable" class="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
                     <label for="dum-confiavel" class="ml-2 block text-sm text-gray-900">DUM Confiável</label>
                   </div>
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700">Data do 1º USG</label>
+                      <input type="date" formControlName="firstUltrasoundDate" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                       [class.border-red-500]="calculatorForm.get('firstUltrasoundDate')?.invalid && calculatorForm.get('firstUltrasoundDate')?.touched">
+                       @if(calculatorForm.get('firstUltrasoundDate')?.hasError('required') && calculatorForm.get('firstUltrasoundDate')?.touched) {
+                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+                      }
+                  </div>
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700">IG no 1º USG (Semanas e Dias)</label>
+                      <input type="text" formControlName="firstUltrasoundGA" placeholder="Ex: 8s 1d" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                       [class.border-red-500]="calculatorForm.get('firstUltrasoundGA')?.invalid && calculatorForm.get('firstUltrasoundGA')?.touched">
+                       @if(calculatorForm.get('firstUltrasoundGA')?.hasError('required') && calculatorForm.get('firstUltrasoundGA')?.touched) {
+                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+                      }
+                      @if(calculatorForm.get('firstUltrasoundGA')?.hasError('pattern') && calculatorForm.get('firstUltrasoundGA')?.touched) {
+                        <p class="text-xs text-red-600 mt-1">Formato inválido. Use: 8s 1d</p>
+                      }
+                  </div>
               </div>
-              <!-- USG Input -->
-               <div>
-                  <label for="usg-data" class="block text-sm font-medium text-gray-700">Data do 1º USG</label>
-                  <input type="date" id="usg-data" [value]="patient().gestationalCalculator.firstUltrasoundDate" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+               </form>
+            } @else {
+              <div class="space-y-4">
+                 <div>
+                      <label class="block text-sm font-medium text-gray-700">DUM (Data da Última Menstruação)</label>
+                      <p class="mt-1 text-gray-800">{{ patient().gestationalCalculator.dum | date: 'dd/MM/yyyy' }} ({{ patient().gestationalCalculator.dumIsReliable ? 'Confiável' : 'Não Confiável' }})</p>
+                  </div>
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700">Data do 1º USG</label>
+                      <p class="mt-1 text-gray-800">{{ patient().gestationalCalculator.firstUltrasoundDate | date: 'dd/MM/yyyy' }}</p>
+                  </div>
+                  <div>
+                      <label class="block text-sm font-medium text-gray-700">IG no 1º USG (Semanas e Dias)</label>
+                      <p class="mt-1 text-gray-800">{{ patient().gestationalCalculator.firstUltrasoundGA }}</p>
+                  </div>
               </div>
-               <div>
-                  <label for="usg-ig" class="block text-sm font-medium text-gray-700">IG no 1º USG (Semanas e Dias)</label>
-                  <input type="text" id="usg-ig" [value]="patient().gestationalCalculator.firstUltrasoundGA" placeholder="Ex: 8s 1d" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
-              </div>
+            }
 
-              <!-- Results -->
-              <div class="pt-4 space-y-3">
+            <!-- Results -->
+            <div class="pt-4 space-y-3">
+              @if(isCalculatorEditing()) {
+                  <div class="p-3 rounded-lg bg-gray-100 border border-gray-200">
+                      <p class="text-xs font-medium text-gray-500">Preview pela DUM</p>
+                      <p class="text-sm font-semibold text-gray-800">DPP: {{ dumPreviewResult().dpp }} | IG Hoje: {{ dumPreviewResult().ig }}</p>
+                  </div>
+                  <div class="p-3 rounded-lg bg-blue-100 border border-blue-200">
+                      <p class="text-xs font-medium text-blue-600">Preview Corrigido pelo 1º USG</p>
+                      <p class="text-sm font-semibold text-blue-800">DPP: {{ usgPreviewResult().dpp }} | IG Hoje: {{ usgPreviewResult().ig }}</p>
+                  </div>
+              } @else {
                   <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
                       <p class="text-xs font-medium text-gray-500">Resultado pela DUM</p>
                       <p class="text-sm font-semibold text-gray-800">DPP: {{ dumResult().dpp }} | IG Hoje: {{ dumResult().ig }}</p>
                   </div>
-                   <div class="p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <div class="p-3 rounded-lg bg-blue-50 border border-blue-200">
                       <p class="text-xs font-medium text-blue-600">Resultado Corrigido pelo 1º USG</p>
                       <p class="text-sm font-semibold text-blue-800">DPP: {{ usgResult().dpp }} | IG Hoje: {{ usgResult().ig }}</p>
                   </div>
+              }
+            </div>
+            
+            <!-- Official Basis Selection -->
+            <div class="pt-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Base de Cálculo Oficial:</label>
+              <div class="flex space-x-4">
+                  <button (click)="setCalculationBasis('DUM')"
+                          [class]="'flex-1 text-center px-4 py-2 text-sm font-medium border rounded-md transition-colors ' + (calculationBasis() === 'DUM' ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50')">
+                    DUM
+                  </button>
+                  <button (click)="setCalculationBasis('USG')"
+                          [class]="'flex-1 text-center px-4 py-2 text-sm font-medium border rounded-md transition-colors ' + (calculationBasis() === 'USG' ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50')">
+                    1º USG
+                  </button>
               </div>
-              
-               <!-- Official Basis Selection -->
-               <div class="pt-4">
-                 <label class="block text-sm font-semibold text-gray-700 mb-2">Base de Cálculo Oficial:</label>
-                 <div class="flex space-x-4">
-                    <button (click)="setCalculationBasis('DUM')"
-                            [class]="'flex-1 text-center px-4 py-2 text-sm font-medium border rounded-md transition-colors ' + (calculationBasis() === 'DUM' ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50')">
-                      DUM
-                    </button>
-                     <button (click)="setCalculationBasis('USG')"
-                            [class]="'flex-1 text-center px-4 py-2 text-sm font-medium border rounded-md transition-colors ' + (calculationBasis() === 'USG' ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50')">
-                      1º USG
-                    </button>
-                 </div>
-               </div>
-           </div>
-        </div>
+            </div>
+          </div>
+        
       </div>
 
     </div>
   </div>
+
+  <!-- Add/Edit Obstetric History Modal -->
+  @if(isHistoryModalOpen()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center" (click)="closeHistoryModal()">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-2xl shadow-xl p-8" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">{{ editingHistoryIndex() !== null ? 'Editar Parto Anterior' : 'Adicionar Parto Anterior' }}</h2>
+          <p class="text-sm text-gray-500">Registre os dados de uma gestação anterior.</p>
+        </div>
+        <button (click)="closeHistoryModal()" class="p-2 -m-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <form [formGroup]="historyForm" (ngSubmit)="saveHistory()">
+        <div class="space-y-4">
+          <div>
+            <label for="babyName" class="block text-sm font-medium text-gray-700 mb-1">Nome do Bebê</label>
+            <input type="text" id="babyName" formControlName="babyName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+             [class.border-red-500]="historyForm.get('babyName')?.invalid && historyForm.get('babyName')?.touched">
+            @if(historyForm.get('babyName')?.hasError('required') && historyForm.get('babyName')?.touched) {
+              <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+            }
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="gaAtBirth" class="block text-sm font-medium text-gray-700 mb-1">IG Nasc. (Ex: 39s 2d)</label>
+              <input type="text" id="gaAtBirth" formControlName="gestationalAgeAtBirth" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+               [class.border-red-500]="historyForm.get('gestationalAgeAtBirth')?.invalid && historyForm.get('gestationalAgeAtBirth')?.touched">
+              @if(historyForm.get('gestationalAgeAtBirth')?.hasError('required') && historyForm.get('gestationalAgeAtBirth')?.touched) {
+                <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+              }
+            </div>
+            <div>
+              <label for="babyWeight" class="block text-sm font-medium text-gray-700 mb-1">Peso (Ex: 3.450g)</label>
+              <input type="text" id="babyWeight" formControlName="babyWeight" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+               [class.border-red-500]="historyForm.get('babyWeight')?.invalid && historyForm.get('babyWeight')?.touched">
+              @if(historyForm.get('babyWeight')?.hasError('required') && historyForm.get('babyWeight')?.touched) {
+                <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
+              }
+            </div>
+          </div>
+          <div>
+            <label for="deliveryType" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Parto</label>
+            <select id="deliveryType" formControlName="deliveryType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+              <option>Parto Normal</option>
+              <option>Parto Fórceps</option>
+              <option>Parto Cesárea</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end space-x-3">
+          <button type="button" (click)="closeHistoryModal()" class="px-5 py-2.5 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
+          <button type="submit" [disabled]="historyForm.invalid" class="px-5 py-2.5 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300">
+            {{ editingHistoryIndex() !== null ? 'Salvar Alterações' : 'Adicionar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (historyToDelete() !== null) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" (click)="cancelDeleteHistory()"></div>
+    <div class="relative bg-white w-full max-w-md rounded-2xl shadow-xl p-8">
+      <div class="text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <div class="mt-3">
+          <h3 class="text-lg font-semibold leading-6 text-gray-900">Excluir Registro</h3>
+          <div class="mt-2">
+            <p class="text-sm text-gray-500">
+              Tem certeza que deseja excluir este registro de parto anterior? Esta ação não pode ser desfeita.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="mt-5 sm:mt-6 grid grid-cols-2 gap-3">
+        <button type="button" (click)="cancelDeleteHistory()" class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+          Cancelar
+        </button>
+        <button type="button" (click)="confirmDeleteHistory()" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+          Confirmar Exclusão
+        </button>
+      </div>
+    </div>
+  </div>
+  }
 </main>

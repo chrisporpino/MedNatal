@@ -1,16 +1,17 @@
 import { Component, ChangeDetectionStrategy, signal, input, output, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 interface NavItem {
   icon: string;
   label: string;
-  active: boolean;
+  path: string;
 }
 
 @Component({
   selector: 'app-left-nav',
   standalone: true,
-  imports: [],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './left-nav.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -26,10 +27,10 @@ export class LeftNavComponent {
   });
 
   navItems = signal<NavItem[]>([
-    { icon: 'calendar', label: 'Agenda', active: false },
-    { icon: 'users', label: 'Pacientes', active: true },
-    { icon: 'chart', label: 'Relatórios', active: false },
-    { icon: 'settings', label: 'Configurações', active: false },
+    { icon: 'users', label: 'Pacientes', path: '/pacientes' },
+    { icon: 'calendar', label: 'Agenda', path: '#' },
+    { icon: 'chart', label: 'Relatórios', path: '#' },
+    { icon: 'settings', label: 'Configurações', path: '#' },
   ]);
 
   private iconSvgTemplates: { [key: string]: string } = {

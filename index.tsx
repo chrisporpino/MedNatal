@@ -8,6 +8,7 @@ import { ConsultasComponent } from './src/components/consultas/consultas.compone
 import { GeneralDataComponent } from './src/components/general-data/general-data.component';
 import { ExamsComponent } from './src/components/exames/exames.component';
 import { EcosComponent } from './src/components/ecos/ecos.component';
+import { PatientListComponent } from './src/components/patient-list/patient-list.component';
 
 const routes: Routes = [
   { path: 'dashboard', component: PregnancyDashboardComponent },
@@ -15,7 +16,8 @@ const routes: Routes = [
   { path: 'dados-gerais', component: GeneralDataComponent },
   { path: 'exames', component: ExamsComponent },
   { path: 'ecos', component: EcosComponent },
-  { path: '', redirectTo: 'consultas', pathMatch: 'full' },
+  { path: 'pacientes', component: PatientListComponent },
+  { path: '', redirectTo: 'pacientes', pathMatch: 'full' },
 ];
 
 bootstrapApplication(AppComponent, {

@@ -7,7 +7,7 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style> 
+  <style>
     /* Custom scrollbar for a cleaner look */
     ::-webkit-scrollbar {
       width: 6px;
@@ -22,6 +22,27 @@
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #9ca3af;
+    }
+
+    /* Force light theme for form inputs regardless of system settings */
+    input, select, textarea {
+      background-color: #ffffff !important;
+      color: #111827 !important; /* text-gray-900 */
+      color-scheme: light; /* Fixes number input arrows in dark mode */
+    }
+    
+    /* Chrome, Edge, Safari autofill styles */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    textarea:-webkit-autofill:hover,
+    textarea:-webkit-autofill:focus,
+    select:-webkit-autofill,
+    select:-webkit-autofill:hover,
+    select:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+      -webkit-text-fill-color: #111827 !important;
     }
   </style>
 <script type="importmap">
@@ -38,12 +59,14 @@
     "d3": "https://next.esm.sh/d3@^7.9.0?external=rxjs",
     "@angular/router": "https://next.esm.sh/@angular/router@^21.0.0?external=rxjs",
     "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^21.0.0?external=rxjs",
-    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^21.0.0?external=rxjs"
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^21.0.0?external=rxjs",
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^21.0.0?external=rxjs",
+    "@angular/core/rxjs-interop": "https://next.esm.sh/@angular/core@^21.0.3/rxjs-interop?external=rxjs"
   }
 }
 </script>
 </head>
-<body class="bg-gray-50 font-sans antialiased">
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
   <app-root></app-root>
 </body>
 </html>

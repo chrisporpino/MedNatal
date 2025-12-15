@@ -10,7 +10,7 @@
   </div>
 
   <!-- User Info -->
-  <div class="flex flex-col items-center border-b border-gray-200 transition-all duration-300" [class]="isCollapsed() ? 'p-4' : 'p-6'">
+  <div class="hidden flex flex-col items-center border-b border-gray-200 transition-all duration-300" [class]="isCollapsed() ? 'p-4' : 'p-6'">
     <img [src]="doctor().avatarUrl" alt="Foto do Doutor" class="rounded-full object-cover border-2 border-sky-400 transition-all duration-300" [class]="isCollapsed() ? 'w-12 h-12' : 'w-20 h-20'">
     @if (!isCollapsed()) {
       <span class="font-medium text-slate-800 text-center whitespace-nowrap mt-3">{{ doctor().name }}</span>
@@ -20,7 +20,17 @@
   <!-- Navigation -->
   <nav class="flex-1 px-2 py-2 space-y-2">
     @for(item of navItems(); track item.label) {
-      <a href="#" [title]="isCollapsed() ? item.label : ''" [class]="'flex items-center py-2.5 rounded-lg transition-colors duration-200 ' + (isCollapsed() ? 'justify-center' : 'px-4') + (item.active ? ' bg-[rgba(234,244,252,1)] text-[rgba(21,87,185,1)] font-bold' : ' hover:bg-gray-100 hover:text-gray-800')">
+      <a [routerLink]="item.path !== '#' ? item.path : null"
+         routerLinkActive="bg-[rgba(234,244,252,1)] text-[rgba(21,87,185,1)] font-bold"
+         #rla="routerLinkActive"
+         [title]="isCollapsed() ? item.label : ''"
+         [class.pointer-events-none]="item.path === '#'"
+         [class.opacity-50]="item.path === '#'"
+         class="flex items-center py-2.5 rounded-lg transition-colors duration-200"
+         [class]="isCollapsed() ? 'justify-center' : 'px-4'"
+         [class.hover:bg-gray-100]="!rla.isActive"
+         [class.hover:text-gray-800]="!rla.isActive">
+        
         <span class="flex-shrink-0" [class.mr-3]="!isCollapsed()" [innerHTML]="getSafeIconHtml(item.icon)"></span>
         @if (!isCollapsed()) {
           <span class="whitespace-nowrap">{{ item.label }}</span>

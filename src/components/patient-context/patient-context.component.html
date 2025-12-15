@@ -1,46 +1,61 @@
 <!-- Main column container. Sets the width and provides padding for the card. -->
-<div class="flex-shrink-0 w-72 xl:w-80 pt-6 pl-6 pb-6 pr-2 h-full bg-gray-100 transition-all duration-300">
+<div class="flex-shrink-0 w-72 xl:w-80 h-full bg-gray-100 transition-all duration-300 flex flex-col">
   
-  <!-- The actual card element. -->
-  <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col">
-
-    <!-- Patient Header section -->
-    <div class="p-6 text-center border-b border-gray-200">
-      <img [src]="patient().avatarUrl" alt="Foto da Paciente" class="w-28 h-28 rounded-full object-cover mx-auto">
-      <div class="pt-4">
-        <h2 class="text-2xl font-bold text-gray-800">{{ patient().name }}</h2>
-        <p class="text-sm text-gray-500">ID: 893.452.129-00</p>
+  <!-- Contextual Header -->
+  <div class="h-16 flex-shrink-0 flex items-center justify-between pt-4 pl-6 pr-2 pb-4">
+      <div class="flex items-center space-x-2">
+          <a routerLink="/pacientes" class="text-gray-500 hover:text-gray-800 p-2 -ml-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+              </svg>
+          </a>
+          <h2 class="text-lg font-semibold text-slate-800">Detalhes da Paciente</h2>
       </div>
+  </div>
+
+  <!-- Card container with padding -->
+  <div class="flex-1 pl-6 pb-6 pr-2 min-h-0">
+    <!-- The actual card element. -->
+    <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col">
+
+      <!-- Patient Header section -->
+      <div class="p-6 text-center border-b border-gray-200">
+        <img [src]="patient().avatarUrl" alt="Foto da Paciente" class="w-28 h-28 rounded-full object-cover mx-auto">
+        <div class="pt-4">
+          <h2 class="text-xl font-bold text-gray-800">{{ patient().name }}</h2>
+          <p class="text-sm text-gray-500">CPF: {{ patient().id }}</p>
+        </div>
+      </div>
+      
+      <!-- Contextual Navigation section -->
+      <nav class="flex-1 p-4 overflow-y-auto">
+        <ul class="space-y-2">
+          @for(item of contextNavItems(); track item.label) {
+            <li>
+              <a [routerLink]="item.path !== '#' ? [item.path] : null"
+                 routerLinkActive
+                 #rla="routerLinkActive"
+                 class="relative flex items-center px-4 py-3 text-md font-medium rounded-lg transition-all duration-200"
+                 [class.text-gray-600]="!rla.isActive"
+                 [class.hover:bg-gray-100]="!rla.isActive"
+                 [class.text-teal-600]="rla.isActive"
+                 [class.font-semibold]="rla.isActive"
+                 [class.bg-teal-50]="rla.isActive"
+                 [class.pointer-events-none]="item.path === '#'"
+                 [class.opacity-50]="item.path === '#'">
+                 
+                 <!-- Active state indicator "bracket" -->
+                 @if (rla.isActive) {
+                   <span class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-teal-500 rounded-r-full"></span>
+                 }
+
+                <span class="ml-3">{{ item.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
+
     </div>
-    
-    <!-- Contextual Navigation section -->
-    <nav class="flex-1 p-4 overflow-y-auto">
-      <ul class="space-y-2">
-        @for(item of contextNavItems(); track item.label) {
-          <li>
-            <a [routerLink]="item.path !== '#' ? [item.path] : null"
-               routerLinkActive
-               #rla="routerLinkActive"
-               class="relative flex items-center px-4 py-3 text-md font-medium rounded-lg transition-all duration-200"
-               [class.text-gray-600]="!rla.isActive"
-               [class.hover:bg-gray-100]="!rla.isActive"
-               [class.text-teal-600]="rla.isActive"
-               [class.font-semibold]="rla.isActive"
-               [class.bg-teal-50]="rla.isActive"
-               [class.pointer-events-none]="item.path === '#'"
-               [class.opacity-50]="item.path === '#'">
-               
-               <!-- Active state indicator "bracket" -->
-               @if (rla.isActive) {
-                 <span class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-teal-500 rounded-r-full"></span>
-               }
-
-              <span class="ml-3">{{ item.label }}</span>
-            </a>
-          </li>
-        }
-      </ul>
-    </nav>
-
   </div>
 </div>
