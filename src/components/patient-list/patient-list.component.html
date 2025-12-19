@@ -14,113 +14,140 @@
       </button>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
-      <!-- Search -->
-      <div class="relative w-full md:w-2/5">
-        <input 
-          type="text" 
-          placeholder="Buscar por nome ou CPF..." 
-          (input)="onSearch($event)"
-          class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+    @if (emptyState(); as state) {
+      <!-- Empty State -->
+      <div class="text-center py-20 px-6 bg-white rounded-2xl shadow-sm border border-gray-200">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
           </svg>
-        </div>
-         <!-- Spinner -->
-        @if (isSearching()) {
-          <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-            <svg class="animate-spin h-5 w-5 text-sky-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <h3 class="mt-4 text-lg font-semibold text-gray-800">{{ state.title }}</h3>
+          <p class="mt-2 text-sm text-gray-500">{{ state.description }}</p>
+          @if(state.showButton) {
+            <div class="mt-6">
+               <button (click)="openAddPatientModal()" class="flex items-center mx-auto bg-sky-500 text-white font-semibold px-5 py-2.5 rounded-lg shadow-md hover:bg-sky-600 transition-colors duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Cadastrar Primeira Paciente
+                </button>
+            </div>
+          }
+      </div>
+    } @else {
+      <!-- Search and Filters -->
+      <div class="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+        <!-- Search -->
+        <div class="relative w-full md:w-2/5">
+          <input 
+            type="text" 
+            placeholder="Buscar por nome ou CPF..." 
+            (input)="onSearch($event)"
+            class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
           </div>
-        }
-      </div>
-      <!-- Filter Chips -->
-      <div class="flex items-center space-x-2">
-        <button (click)="setFilter('Todas')" [class]="'px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ' + (activeFilter() === 'Todas' ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border')">
-          Todas
-        </button>
-        <button (click)="setFilter('Alto Risco')" [class]="'px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ' + (activeFilter() === 'Alto Risco' ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border')">
-          Alto Risco
-        </button>
-        <button (click)="setFilter('DPP Próxima')" [class]="'px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ' + (activeFilter() === 'DPP Próxima' ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border')">
-          DPP Próxima
-        </button>
-      </div>
-    </div>
-
-    <!-- Patients Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-       <div class="overflow-x-auto">
-      <table class="w-full text-sm text-left text-gray-600">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
-          <tr>
-            <th scope="col" class="px-6 py-4 cursor-pointer" (click)="sortBy('name')">
-                <div class="flex items-center">
-                    Nome da Paciente
-                    <svg *ngIf="sortColumn() === 'name'" class="w-3 h-3 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                        <path [attr.d]="sortDirection() === 'asc' ? 'M8.574 14.828a.5.5 0 0 1 .354-.854l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L12 9.707l-5.646 5.647a.5.5 0 0 1-.708-.708z' : 'M15.426 9.172a.5.5 0 0 1-.354.854l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 1 1 .708-.708L12 14.293l5.646-5.647a.5.5 0 0 1 .708.708z'"/>
-                    </svg>
-                </div>
-            </th>
-            <th scope="col" class="px-6 py-4">CPF</th>
-            <th scope="col" class="px-6 py-4 cursor-pointer" (click)="sortBy('gestationalAge')">
-                 <div class="flex items-center">
-                    IG Atual
-                    <svg *ngIf="sortColumn() === 'gestationalAge'" class="w-3 h-3 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                        <path [attr.d]="sortDirection() === 'asc' ? 'M8.574 14.828a.5.5 0 0 1 .354-.854l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L12 9.707l-5.646 5.647a.5.5 0 0 1-.708-.708z' : 'M15.426 9.172a.5.5 0 0 1-.354.854l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 1 1 .708-.708L12 14.293l5.646-5.647a.5.5 0 0 1 .708.708z'"/>
-                    </svg>
-                </div>
-            </th>
-            <th scope="col" class="px-6 py-4 cursor-pointer" (click)="sortBy('edd')">
-                 <div class="flex items-center">
-                    DPP
-                    <svg *ngIf="sortColumn() === 'edd'" class="w-3 h-3 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                        <path [attr.d]="sortDirection() === 'asc' ? 'M8.574 14.828a.5.5 0 0 1 .354-.854l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L12 9.707l-5.646 5.647a.5.5 0 0 1-.708-.708z' : 'M15.426 9.172a.5.5 0 0 1-.354.854l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 1 1 .708-.708L12 14.293l5.646-5.647a.5.5 0 0 1 .708.708z'"/>
-                    </svg>
-                </div>
-            </th>
-            <th scope="col" class="px-6 py-4">Risco</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for(patient of paginatedList().data; track patient.id) {
-            <tr (click)="navigateToPatient(patient.id)" class="bg-white border-b hover:bg-gray-50 cursor-pointer">
-              <td class="px-6 py-4 font-medium text-sky-700">
-                {{ patient.name }}
-              </td>
-              <td class="px-6 py-4">{{ patient.id }}</td>
-              <td class="px-6 py-4 text-base font-bold text-gray-800">{{ patient.gestationalAge }}</td>
-              <td class="px-6 py-4">{{ patient.edd }}</td>
-              <td class="px-6 py-4">
-                <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + getRiskClass(patient.risk)">
-                  {{ patient.risk }}
-                </span>
-              </td>
-            </tr>
+           <!-- Spinner -->
+          @if (isSearching()) {
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <svg class="animate-spin h-5 w-5 text-sky-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
           }
-        </tbody>
-      </table>
-      </div>
-      <!-- Pagination -->
-       <div class="flex items-center justify-between p-4 border-t">
-        <span class="text-sm text-gray-600">
-          Mostrando {{ paginatedList().data.length }} de {{ paginatedList().totalItems }} pacientes
-        </span>
+        </div>
+        <!-- Filter Chips -->
         <div class="flex items-center space-x-2">
-            <button (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 1" class="px-3 py-1 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                Anterior
-            </button>
-            <span class="text-sm text-gray-600">Página {{ currentPage() }} de {{ paginatedList().totalPages }}</span>
-            <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() === paginatedList().totalPages" class="px-3 py-1 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-                Próxima
-            </button>
+          <button (click)="setFilter('Todas')" [class]="'px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ' + (activeFilter() === 'Todas' ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border')">
+            Todas
+          </button>
+          <button (click)="setFilter('Alto Risco')" [class]="'px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ' + (activeFilter() === 'Alto Risco' ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border')">
+            Alto Risco
+          </button>
+          <button (click)="setFilter('DPP Próxima')" [class]="'px-4 py-1.5 text-sm font-semibold rounded-full transition-colors ' + (activeFilter() === 'DPP Próxima' ? 'bg-sky-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-100 border')">
+            DPP Próxima
+          </button>
         </div>
       </div>
-    </div>
+      <!-- Patients Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+            <tr>
+              <th scope="col" class="px-6 py-4 cursor-pointer" (click)="sortBy('name')">
+                  <div class="flex items-center">
+                      Nome da Paciente
+                      @if (sortColumn() === 'name') {
+                        <svg class="w-3 h-3 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                            <path [attr.d]="sortDirection() === 'asc' ? 'M8.574 14.828a.5.5 0 0 1 .354-.854l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L12 9.707l-5.646 5.647a.5.5 0 0 1-.708-.708z' : 'M15.426 9.172a.5.5 0 0 1-.354.854l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 1 1 .708-.708L12 14.293l5.646-5.647a.5.5 0 0 1 .708.708z'"/>
+                        </svg>
+                      }
+                  </div>
+              </th>
+              <th scope="col" class="px-6 py-4">CPF</th>
+              <th scope="col" class="px-6 py-4 cursor-pointer" (click)="sortBy('gestationalAge')">
+                   <div class="flex items-center">
+                      IG Atual
+                      @if (sortColumn() === 'gestationalAge') {
+                        <svg class="w-3 h-3 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                            <path [attr.d]="sortDirection() === 'asc' ? 'M8.574 14.828a.5.5 0 0 1 .354-.854l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L12 9.707l-5.646 5.647a.5.5 0 0 1-.708-.708z' : 'M15.426 9.172a.5.5 0 0 1-.354.854l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 1 1 .708-.708L12 14.293l5.646-5.647a.5.5 0 0 1 .708.708z'"/>
+                        </svg>
+                      }
+                  </div>
+              </th>
+              <th scope="col" class="px-6 py-4 cursor-pointer" (click)="sortBy('edd')">
+                   <div class="flex items-center">
+                      DPP
+                      @if (sortColumn() === 'edd') {
+                        <svg class="w-3 h-3 ml-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                            <path [attr.d]="sortDirection() === 'asc' ? 'M8.574 14.828a.5.5 0 0 1 .354-.854l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L12 9.707l-5.646 5.647a.5.5 0 0 1-.708-.708z' : 'M15.426 9.172a.5.5 0 0 1-.354.854l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 1 1 .708-.708L12 14.293l5.646-5.647a.5.5 0 0 1 .708.708z'"/>
+                        </svg>
+                      }
+                  </div>
+              </th>
+              <th scope="col" class="px-6 py-4">Risco</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for(patient of paginatedList().data; track patient.id) {
+              <tr (click)="navigateToPatient(patient.id)" class="bg-white border-b hover:bg-gray-50 cursor-pointer">
+                <td class="px-6 py-4 font-medium text-sky-700">
+                  {{ patient.name }}
+                </td>
+                <td class="px-6 py-4">{{ patient.id }}</td>
+                <td class="px-6 py-4 text-base font-bold text-gray-800">{{ patient.gestationalAge }}</td>
+                <td class="px-6 py-4">{{ patient.edd }}</td>
+                <td class="px-6 py-4">
+                  <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + getRiskClass(patient.risk)">
+                    {{ patient.risk }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        </div>
+        <!-- Pagination -->
+         <div class="flex items-center justify-between p-4 border-t">
+          <span class="text-sm text-gray-600">
+            Mostrando {{ paginatedList().data.length }} de {{ paginatedList().totalItems }} pacientes
+          </span>
+          <div class="flex items-center space-x-2">
+              <button (click)="changePage(currentPage() - 1)" [disabled]="currentPage() === 1" class="px-3 py-1 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Anterior
+              </button>
+              <span class="text-sm text-gray-600">Página {{ currentPage() }} de {{ paginatedList().totalPages }}</span>
+              <button (click)="changePage(currentPage() + 1)" [disabled]="currentPage() === paginatedList().totalPages" class="px-3 py-1 text-sm font-medium bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                  Próxima
+              </button>
+          </div>
+        </div>
+      </div>
+    }
+
   </div>
 
   <!-- Side Panel for New Patient -->
@@ -178,24 +205,19 @@
           <!-- Footer -->
           <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
               <button type="button" (click)="closeAddPatientModal()" class="px-5 py-2.5 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
-              <button type="submit" [disabled]="newPatientForm.invalid" class="px-5 py-2.5 text-sm font-semibold bg-sky-500 text-white rounded-lg shadow-sm hover:bg-sky-600 disabled:bg-sky-300 disabled:cursor-not-allowed">Cadastrar e Iniciar Ficha</button>
+              <button type="submit" [disabled]="newPatientForm.invalid || isRegistering()" class="w-[210px] flex justify-center items-center px-5 py-2.5 text-sm font-semibold bg-sky-500 text-white rounded-lg shadow-sm hover:bg-sky-600 disabled:bg-sky-300 disabled:cursor-not-allowed">
+                @if (isRegistering()) {
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Cadastrando...</span>
+                } @else {
+                  <span>Cadastrar e Iniciar Ficha</span>
+                }
+              </button>
           </div>
         </form>
-      </div>
-    </div>
-  }
-
-  <!-- Success Toast Notification -->
-  @if (showSuccessToast()) {
-    <div class="fixed top-24 right-8 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex items-center">
-      <div class="flex-shrink-0 text-green-500">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-        </svg>
-      </div>
-      <div class="ml-3">
-        <p class="font-semibold text-gray-800">Paciente Cadastrada com Sucesso!</p>
-        <p class="text-sm text-gray-500">A nova ficha já está disponível na lista.</p>
       </div>
     </div>
   }

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angula
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-general-data',
@@ -14,6 +15,7 @@ import { startWith } from 'rxjs';
 })
 export class GeneralDataComponent implements OnInit {
   private patientDataService = inject(PatientDataService);
+  private toastService = inject(ToastService);
   
   patient = this.patientDataService.getPatientData();
   
@@ -22,6 +24,10 @@ export class GeneralDataComponent implements OnInit {
   isHistoryModalOpen = signal(false);
   editingHistoryIndex = signal<number | null>(null);
   historyToDelete = signal<number | null>(null); 
+  
+  isPatientInfoSaving = signal(false);
+  isCalculatorSaving = signal(false);
+  isHistorySaving = signal(false);
 
   patientInfoForm = new FormGroup({
     name: new FormControl('', Validators.required),
@@ -137,9 +143,14 @@ export class GeneralDataComponent implements OnInit {
 
   savePatientInfo(): void {
     if (this.patientInfoForm.invalid) return;
-    const formValue = this.patientInfoForm.getRawValue(); // Use getRawValue to include disabled fields like CPF
-    this.patientDataService.updatePatient({ ...formValue, id: formValue.id?.replace(/\D/g, '') } as Partial<Patient>);
-    this.isPatientInfoEditing.set(false);
+    this.isPatientInfoSaving.set(true);
+    setTimeout(() => {
+      const formValue = this.patientInfoForm.getRawValue(); // Use getRawValue to include disabled fields like CPF
+      this.patientDataService.updatePatient({ ...formValue, id: formValue.id?.replace(/\D/g, '') } as Partial<Patient>);
+      this.isPatientInfoEditing.set(false);
+      this.isPatientInfoSaving.set(false);
+      this.toastService.show('Dados Salvos!', 'As informações da paciente foram atualizadas.');
+    }, 800);
   }
 
   enableCalculatorEdit(): void {
@@ -150,10 +161,15 @@ export class GeneralDataComponent implements OnInit {
 
   saveCalculator(): void {
     if (this.calculatorForm.invalid) return;
-    const newCalculatorData = this.calculatorForm.value as Patient['gestationalCalculator'];
-    this.patientDataService.updatePatient({ gestationalCalculator: { ...this.patient().gestationalCalculator, ...newCalculatorData } });
-    this.updateOfficialPatientGA_EDD();
-    this.isCalculatorEditing.set(false);
+    this.isCalculatorSaving.set(true);
+    setTimeout(() => {
+      const newCalculatorData = this.calculatorForm.value as Patient['gestationalCalculator'];
+      this.patientDataService.updatePatient({ gestationalCalculator: { ...this.patient().gestationalCalculator, ...newCalculatorData } });
+      this.updateOfficialPatientGA_EDD();
+      this.isCalculatorEditing.set(false);
+      this.isCalculatorSaving.set(false);
+      this.toastService.show('Calculadora Salva!', 'Os dados da calculadora gestacional foram atualizados.');
+    }, 800);
   }
   
   setCalculationBasis(basis: 'DUM' | 'USG') {
@@ -182,14 +198,19 @@ export class GeneralDataComponent implements OnInit {
 
   saveHistory(): void {
     if (this.historyForm.invalid) return;
-    const historyData = this.historyForm.value as ObstetricHistory;
-    const index = this.editingHistoryIndex();
-    if (index !== null) {
-      this.patientDataService.updateObstetricHistory(index, historyData);
-    } else {
-      this.patientDataService.addObstetricHistory(historyData);
-    }
-    this.closeHistoryModal();
+    this.isHistorySaving.set(true);
+    setTimeout(() => {
+      const historyData = this.historyForm.value as ObstetricHistory;
+      const index = this.editingHistoryIndex();
+      if (index !== null) {
+        this.patientDataService.updateObstetricHistory(index, historyData);
+      } else {
+        this.patientDataService.addObstetricHistory(historyData);
+      }
+      this.isHistorySaving.set(false);
+      this.closeHistoryModal();
+      this.toastService.show('Histórico Salvo!', 'O registro de parto foi salvo com sucesso.');
+    }, 800);
   }
 
   editHistory(index: number): void {
@@ -204,7 +225,10 @@ export class GeneralDataComponent implements OnInit {
   requestDeleteHistory(index: number): void { this.historyToDelete.set(index); }
   confirmDeleteHistory(): void {
     const index = this.historyToDelete();
-    if (index !== null) this.patientDataService.deleteObstetricHistory(index);
+    if (index !== null) {
+      this.patientDataService.deleteObstetricHistory(index);
+      this.toastService.show('Registro Excluído!', 'O parto anterior foi removido do histórico.');
+    }
     this.cancelDeleteHistory();
   }
   cancelDeleteHistory(): void { this.historyToDelete.set(null); }

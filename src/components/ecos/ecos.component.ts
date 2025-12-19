@@ -4,6 +4,7 @@ import { D3Service } from '../../services/d3.service';
 import * as d3 from 'd3';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-ecos',
@@ -16,6 +17,7 @@ import { CommonModule } from '@angular/common';
 export class EcosComponent implements AfterViewInit, OnDestroy {
   private patientDataService = inject(PatientDataService);
   private d3Service = inject(D3Service);
+  private toastService = inject(ToastService);
 
   patient = this.patientDataService.getPatientData();
   
@@ -23,6 +25,7 @@ export class EcosComponent implements AfterViewInit, OnDestroy {
   isModalOpen = signal(false);
   editingEco = signal<EcoData | null>(null);
   ecoToDelete = signal<EcoData | null>(null);
+  isSaving = signal(false);
 
   growthChart = viewChild.required<ElementRef>('growthChart');
 
@@ -97,23 +100,27 @@ export class EcosComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const formValue = this.ecoForm.value;
-    const ecoData = {
-      date: formValue.date!,
-      gestationalAge: formValue.gestationalAge!,
-      estimatedFetalWeight: formValue.estimatedFetalWeight!,
-      fetalHeartRate: formValue.fetalHeartRate!,
-      placentaPresentation: `${formValue.presentation}, ${formValue.observations}`
-    };
+    this.isSaving.set(true);
+    setTimeout(() => {
+      const formValue = this.ecoForm.value;
+      const ecoData = {
+        date: formValue.date!,
+        gestationalAge: formValue.gestationalAge!,
+        estimatedFetalWeight: formValue.estimatedFetalWeight!,
+        fetalHeartRate: formValue.fetalHeartRate!,
+        placentaPresentation: `${formValue.presentation}, ${formValue.observations}`
+      };
 
-    const currentEco = this.editingEco();
-    if (currentEco) {
-      this.patientDataService.updateEco({ ...currentEco, ...ecoData });
-    } else {
-      this.patientDataService.addEco(ecoData);
-    }
-
-    this.closeModal();
+      const currentEco = this.editingEco();
+      if (currentEco) {
+        this.patientDataService.updateEco({ ...currentEco, ...ecoData });
+      } else {
+        this.patientDataService.addEco(ecoData);
+      }
+      this.toastService.show('ECO Salvo!', 'O registro do ultrassom foi salvo com sucesso.');
+      this.isSaving.set(false);
+      this.closeModal();
+    }, 800);
   }
   
   // --- Delete ECO Methods ---
@@ -125,6 +132,7 @@ export class EcosComponent implements AfterViewInit, OnDestroy {
     const eco = this.ecoToDelete();
     if (eco) {
       this.patientDataService.deleteEco(eco.id);
+      this.toastService.show('ECO Excluído!', `O registro de ${new Date(eco.date + 'T00:00:00').toLocaleDateString('pt-BR')} foi removido.`);
     }
     this.cancelDeleteEco();
   }

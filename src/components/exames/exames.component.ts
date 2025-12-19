@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@a
 import { PatientDataService, Exam } from '../../services/patient-data.service';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-exames',
@@ -12,6 +13,7 @@ import { CommonModule } from '@angular/common';
 })
 export class ExamsComponent {
   private patientDataService = inject(PatientDataService);
+  private toastService = inject(ToastService);
   patient = this.patientDataService.getPatientData();
 
   // Modal and state management signals
@@ -20,6 +22,7 @@ export class ExamsComponent {
   examToDelete = signal<Exam | null>(null);
   selectedFile = signal<File | null>(null);
   isAlertVisible = signal(true);
+  isSaving = signal(false);
 
   // Filter signals
   searchTerm = signal('');
@@ -103,24 +106,29 @@ export class ExamsComponent {
       return;
     }
 
-    const formValue = this.examForm.value;
-    const examData = {
-      type: formValue.type!,
-      date: formValue.date!,
-      status: formValue.status!,
-      mainResult: formValue.mainResult!,
-      reportUrl: this.selectedFile() ? '#' : (this.editingExam()?.reportUrl || undefined), // Keep existing URL if not changed
-      gestationalAgeAtCollection: formValue.gestationalAgeAtCollection!,
-    };
+    this.isSaving.set(true);
+    setTimeout(() => {
+      const formValue = this.examForm.value;
+      const examData = {
+        type: formValue.type!,
+        date: formValue.date!,
+        status: formValue.status!,
+        mainResult: formValue.mainResult!,
+        reportUrl: this.selectedFile() ? '#' : (this.editingExam()?.reportUrl || undefined), // Keep existing URL if not changed
+        gestationalAgeAtCollection: formValue.gestationalAgeAtCollection!,
+      };
 
-    const currentExam = this.editingExam();
-    if (currentExam) {
-      this.patientDataService.updateExam({ ...currentExam, ...examData });
-    } else {
-      this.patientDataService.addExam(examData);
-    }
+      const currentExam = this.editingExam();
+      if (currentExam) {
+        this.patientDataService.updateExam({ ...currentExam, ...examData });
+      } else {
+        this.patientDataService.addExam(examData);
+      }
 
-    this.closeExamModal();
+      this.toastService.show('Exame Salvo!', 'O registro do exame foi salvo com sucesso.');
+      this.isSaving.set(false);
+      this.closeExamModal();
+    }, 800);
   }
 
   // --- File Handling ---
@@ -171,6 +179,7 @@ export class ExamsComponent {
     const exam = this.examToDelete();
     if (exam) {
       this.patientDataService.deleteExam(exam.id);
+      this.toastService.show('Exame Excluído!', `O exame ${exam.type} foi removido com sucesso.`);
     }
     this.cancelDeleteExam();
   }

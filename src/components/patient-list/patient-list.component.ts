@@ -4,6 +4,7 @@ import { PatientDataService, PatientListItem } from '../../services/patient-data
 import { Subject, debounceTime, takeUntil, tap } from 'rxjs';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ToastService } from '../../services/toast.service';
 
 type SortColumn = 'name' | 'gestationalAge' | 'edd' | 'risk' | 'id';
 
@@ -17,6 +18,7 @@ type SortColumn = 'name' | 'gestationalAge' | 'edd' | 'risk' | 'id';
 export class PatientListComponent implements OnDestroy {
   private patientDataService = inject(PatientDataService);
   private router = inject(Router);
+  private toastService = inject(ToastService);
   
   // --- State Signals ---
   patientList = this.patientDataService.getPatientList();
@@ -34,7 +36,7 @@ export class PatientListComponent implements OnDestroy {
 
   // Modal signals
   isAddPatientModalOpen = signal(false);
-  showSuccessToast = signal(false);
+  isRegistering = signal(false);
 
   newPatientForm: FormGroup;
 
@@ -118,6 +120,24 @@ export class PatientListComponent implements OnDestroy {
       totalPages: Math.ceil(filtered.length / perPage)
     };
   });
+
+  emptyState = computed(() => {
+    if (this.patientList().length === 0) {
+      return {
+        title: 'Nenhuma paciente cadastrada',
+        description: 'Comece cadastrando sua primeira gestante para iniciar o acompanhamento.',
+        showButton: true
+      };
+    }
+    if (this.paginatedList().totalItems === 0) {
+      return {
+        title: 'Nenhuma paciente encontrada',
+        description: 'Tente ajustar sua busca ou filtros para encontrar o que procura.',
+        showButton: false
+      };
+    }
+    return null; // Not empty
+  });
   
   // --- Event Handlers ---
   setFilter(filter: 'Todas' | 'Alto Risco' | 'DPP Próxima') {
@@ -155,18 +175,21 @@ export class PatientListComponent implements OnDestroy {
       this.newPatientForm.markAllAsTouched();
       return;
     }
-    const formValue = this.newPatientForm.value;
-    const newPatient: PatientListItem = {
-      id: formValue.cpf,
-      name: formValue.fullName,
-      gestationalAge: '0s 0d',
-      edd: 'N/A',
-      risk: 'Baixo Risco',
-    };
-    this.patientDataService.addPatient(newPatient);
-    this.closeAddPatientModal();
-    this.showSuccessToast.set(true);
-    setTimeout(() => this.showSuccessToast.set(false), 3000);
+    this.isRegistering.set(true);
+    setTimeout(() => {
+      const formValue = this.newPatientForm.value;
+      const newPatient: PatientListItem = {
+        id: formValue.cpf,
+        name: formValue.fullName,
+        gestationalAge: '0s 0d',
+        edd: 'N/A',
+        risk: 'Baixo Risco',
+      };
+      this.patientDataService.addPatient(newPatient);
+      this.closeAddPatientModal();
+      this.toastService.show('Paciente Cadastrada!', 'A nova ficha já está disponível na lista.');
+      this.isRegistering.set(false);
+    }, 800);
   }
 
   navigateToPatient(patientId: string): void {
