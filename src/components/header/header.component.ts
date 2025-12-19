@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, signal, inject, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -10,6 +11,7 @@ import { Component, ChangeDetectionStrategy, signal, inject, ElementRef, OnInit,
 export class HeaderComponent implements OnInit, OnDestroy {
   isDropdownOpen = signal(false);
   private elementRef = inject(ElementRef);
+  private router = inject(Router);
 
   doctor = {
     name: 'Dra. Andréa Costa',
@@ -31,6 +33,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleDropdown(): void {
     this.isDropdownOpen.update(open => !open);
+  }
+  
+  logout(): void {
+    // In a real app, this would call an AuthService
+    this.router.navigate(['/login']);
   }
 
   private onDocumentClick(event: MouseEvent): void {

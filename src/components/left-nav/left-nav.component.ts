@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, input, output, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 interface NavItem {
   icon: string;
@@ -20,6 +20,7 @@ export class LeftNavComponent {
   navToggled = output<void>();
 
   private sanitizer = inject(DomSanitizer);
+  private router = inject(Router);
 
   doctor = signal({
     name: 'Dra. Andréa Costa',
@@ -27,7 +28,7 @@ export class LeftNavComponent {
   });
 
   navItems = signal<NavItem[]>([
-    { icon: 'users', label: 'Pacientes', path: '/pacientes' },
+    { icon: 'users', label: 'Pacientes', path: '/app/pacientes' },
     { icon: 'calendar', label: 'Agenda', path: '#' },
     { icon: 'chart', label: 'Relatórios', path: '#' },
     { icon: 'settings', label: 'Configurações', path: '#' },
@@ -49,6 +50,11 @@ export class LeftNavComponent {
 
   onToggleNav(): void {
     this.navToggled.emit();
+  }
+
+  logout(): void {
+    // In a real app, this would call an AuthService
+    this.router.navigate(['/login']);
   }
 
   getSafeIconHtml(iconName: string): SafeHtml {

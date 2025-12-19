@@ -21,7 +21,7 @@
           <!-- Accordion Header -->
           <div class="flex items-center p-4 cursor-pointer hover:bg-gray-50" (click)="toggleConsulta(consulta.id)">
             <div class="flex-1">
-              <p class="text-lg font-bold text-gray-800">{{ consulta.date }}</p>
+              <p class="text-lg font-bold text-gray-800">{{ consulta.date | date:'dd/MM/yyyy' }}</p>
               <p class="text-sm text-gray-500">{{ consulta.gestationalAge }}</p>
             </div>
             <div class="flex items-center space-x-6 text-sm text-gray-600 mr-4">
@@ -38,7 +38,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-1.5 text-teal-500">
                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52v1.666m-3.423 1.112c.447.042.892.083 1.336.125m-1.336-.125c-.447-.042-.892-.083-1.336-.125m-1.336 0c-1.01.143-2.01.317-3 .52m-3-.52v1.666m-3.423-1.112c.447-.042.892.083 1.336.125m-1.336-.125c-.447-.042-.892-.083-1.336-.125" />
                 </svg>
-                Peso: <strong [class]="consulta.summary.weightChange.startsWith('+') ? 'text-red-500' : 'text-green-500'">{{ consulta.summary.weightChange }}</strong>
+                Peso: <strong [class]="{
+                  'text-teal-600': consulta.summary.weightChange.startsWith('+'),
+                  'text-red-500': consulta.summary.weightChange.startsWith('-')
+                }">{{ consulta.summary.weightChange }}</strong>
               </span>
             </div>
              <span class="text-xs font-semibold text-teal-700 bg-teal-100 px-3 py-1 rounded-full">Conduta Registrada</span>
@@ -68,8 +71,8 @@
                 </div>
               </div>
               <div class="flex justify-end items-center mt-6 pt-4 border-t border-gray-200 space-x-3">
-                 <button class="text-sm font-medium text-gray-600 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors">Imprimir Resumo</button>
-                 <button class="text-sm font-medium text-teal-600 px-4 py-2 rounded-md hover:bg-teal-50 transition-colors">Editar</button>
+                 <button (click)="requestDeleteConsulta(consulta)" class="text-sm font-medium text-gray-600 px-4 py-2 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors">Excluir</button>
+                 <button (click)="openSidePanel(consulta)" class="text-sm font-medium text-teal-600 px-4 py-2 rounded-md hover:bg-teal-50 transition-colors">Editar</button>
               </div>
             </div>
           }
@@ -86,14 +89,14 @@
       
       <!-- Panel -->
       <div class="relative flex justify-end h-full" (click)="$event.stopPropagation()">
-        <div class="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col">
+        <form [formGroup]="consultaForm" (ngSubmit)="saveConsulta()" class="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col">
           <!-- Header -->
           <div class="flex justify-between items-center p-6 border-b border-gray-200">
             <div>
-              <h2 class="text-xl font-bold text-gray-800">Nova Consulta</h2>
-              <p class="text-sm text-gray-500">Data: 15 de Novembro de 2025</p>
+              <h2 class="text-xl font-bold text-gray-800">{{ editingConsulta() ? 'Editar Consulta' : 'Nova Consulta' }}</h2>
+              <p class="text-sm text-gray-500">Registre os dados da consulta atual.</p>
             </div>
-            <button (click)="closeSidePanel()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700">
+            <button type="button" (click)="closeSidePanel()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
@@ -102,40 +105,76 @@
           <!-- Form -->
           <div class="flex-1 p-6 space-y-5 overflow-y-auto">
               <div>
-                  <label for="peso" class="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
-                  <input type="number" id="peso" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  <label for="consulta-date" class="block text-sm font-medium text-gray-700 mb-1">Data da Consulta *</label>
+                  <input type="date" id="consulta-date" formControlName="date" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
               </div>
               <div>
-                  <label for="pa" class="block text-sm font-medium text-gray-700 mb-1">Pressão Arterial (mmHg)</label>
-                  <input type="text" id="pa" placeholder="120/80" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  <label for="peso" class="block text-sm font-medium text-gray-700 mb-1">Peso (kg) *</label>
+                  <input type="number" id="peso" formControlName="weight" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+              </div>
+              <div>
+                  <label for="pa" class="block text-sm font-medium text-gray-700 mb-1">Pressão Arterial (mmHg) *</label>
+                  <input type="text" id="pa" formControlName="bloodPressure" placeholder="120/80" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
               </div>
                <div>
-                  <label for="altura-uterina" class="block text-sm font-medium text-gray-700 mb-1">Altura Uterina (cm)</label>
-                  <input type="number" id="altura-uterina" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  <label for="altura-uterina" class="block text-sm font-medium text-gray-700 mb-1">Altura Uterina (cm) *</label>
+                  <input type="number" id="altura-uterina" formControlName="uterineHeight" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
               </div>
                <div>
-                  <label for="bcf" class="block text-sm font-medium text-gray-700 mb-1">BCF (bpm)</label>
-                  <input type="number" id="bcf" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                  <label for="bcf" class="block text-sm font-medium text-gray-700 mb-1">BCF (bpm) *</label>
+                  <input type="number" id="bcf" formControlName="fetalHeartRate" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
               </div>
                <div>
-                  <label for="mov-fetal" class="block text-sm font-medium text-gray-700 mb-1">Movimentação Fetal</label>
-                  <select id="mov-fetal" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
-                      <option>Presente</option>
-                      <option>Ausente</option>
+                  <label for="mov-fetal" class="block text-sm font-medium text-gray-700 mb-1">Movimentação Fetal *</label>
+                  <select id="mov-fetal" formControlName="fetalMovements" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      <option value="Presente">Presente</option>
+                      <option value="Ausente">Ausente</option>
                   </select>
               </div>
               <div>
                    <label for="conduta" class="block text-sm font-medium text-gray-700 mb-1">Observações / Conduta</label>
-                   <textarea id="conduta" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"></textarea>
+                   <textarea id="conduta" formControlName="notes" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"></textarea>
               </div>
           </div>
           <!-- Footer -->
           <div class="p-6 bg-gray-50 border-t border-gray-200 flex justify-end space-x-3">
-              <button (click)="closeSidePanel()" class="px-5 py-2.5 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
-              <button class="px-5 py-2.5 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600">Salvar Consulta</button>
+              <button type="button" (click)="closeSidePanel()" class="px-5 py-2.5 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
+              <button type="submit" [disabled]="consultaForm.invalid" class="px-5 py-2.5 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300">
+                {{ editingConsulta() ? 'Salvar Alterações' : 'Salvar Consulta' }}
+              </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (consultaToDelete()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" (click)="cancelDeleteConsulta()"></div>
+    <div class="relative bg-white w-full max-w-md rounded-2xl shadow-xl p-8">
+      <div class="text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z" /></svg>
+        </div>
+        <div class="mt-3">
+          <h3 class="text-lg font-semibold leading-6 text-gray-900">Excluir Consulta</h3>
+          <div class="mt-2">
+            <p class="text-sm text-gray-500">
+              Tem certeza que deseja excluir o registro da consulta de {{ consultaToDelete()?.date | date:'dd/MM/yyyy' }}? Esta ação não pode ser desfeita.
+            </p>
           </div>
         </div>
       </div>
+      <div class="mt-5 sm:mt-6 grid grid-cols-2 gap-3">
+        <button type="button" (click)="cancelDeleteConsulta()" class="inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+          Cancelar
+        </button>
+        <button type="button" (click)="confirmDeleteConsulta()" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+          Confirmar Exclusão
+        </button>
+      </div>
     </div>
+  </div>
   }
 </main>

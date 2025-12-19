@@ -1,12 +1,13 @@
 import { Component, ChangeDetectionStrategy, inject, AfterViewInit, ElementRef, viewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { PatientDataService, Patient } from '../../services/patient-data.service';
+import { RouterLink } from '@angular/router';
+import { PatientDataService } from '../../services/patient-data.service';
 import { D3Service } from '../../services/d3.service';
 
 @Component({
   selector: 'app-pregnancy-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './pregnancy-dashboard.component.html',
   providers: [D3Service],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,5 +55,9 @@ export class PregnancyDashboardComponent implements AfterViewInit {
     }
 
     this.chartsRendered.set(true);
+  }
+
+  togglePendingItem(itemId: number): void {
+    this.patientDataService.togglePendingItemStatus(itemId);
   }
 }

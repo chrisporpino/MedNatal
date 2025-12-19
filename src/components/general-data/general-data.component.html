@@ -34,12 +34,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                   <!-- Form Inputs for Editing -->
                   <div>
-                      <label class="block font-medium text-gray-700">Nome Completo</label>
+                      <label class="block font-medium text-gray-700">Nome Completo *</label>
                       <input type="text" formControlName="name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
                        [class.border-red-500]="patientInfoForm.get('name')?.invalid && patientInfoForm.get('name')?.touched">
                       @if(patientInfoForm.get('name')?.hasError('required') && patientInfoForm.get('name')?.touched) {
                         <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
                       }
+                  </div>
+                   <div>
+                      <label class="block font-medium text-gray-700">CPF</label>
+                      <input type="text" formControlName="id" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-100 cursor-not-allowed">
                   </div>
                   <div>
                       <label class="block font-medium text-gray-700">Idade</label>
@@ -49,16 +53,19 @@
                       <label class="block font-medium text-gray-700">Profissão</label>
                       <input type="text" formControlName="profession" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
-                  <div formGroupName="contact">
-                      <label class="block font-medium text-gray-700">Contato</label>
-                      <div class="flex space-x-2 mt-1">
-                        <input type="text" formControlName="phone" placeholder="Telefone" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
-                        <input type="email" formControlName="email" placeholder="Email" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-                         [class.border-red-500]="patientInfoForm.get('contact.email')?.invalid && patientInfoForm.get('contact.email')?.touched">
+                  <div formGroupName="contact" class="md:col-span-2 grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block font-medium text-gray-700">Telefone</label>
+                        <input type="text" formControlName="phone" placeholder="(00) 00000-0000" (input)="formatPhone($event)" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                       </div>
-                       @if(patientInfoForm.get('contact.email')?.hasError('email') && patientInfoForm.get('contact.email')?.touched) {
-                        <p class="text-xs text-red-600 mt-1">Formato de email inválido.</p>
-                      }
+                       <div>
+                        <label class="block font-medium text-gray-700">Email</label>
+                        <input type="email" formControlName="email" placeholder="email@exemplo.com" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                         [class.border-red-500]="patientInfoForm.get('contact.email')?.invalid && patientInfoForm.get('contact.email')?.touched">
+                        @if(patientInfoForm.get('contact.email')?.hasError('email') && patientInfoForm.get('contact.email')?.touched) {
+                          <p class="text-xs text-red-600 mt-1">Formato de email inválido.</p>
+                        }
+                      </div>
                   </div>
                   <div class="md:col-span-2">
                       <label class="block font-medium text-gray-700">Endereço</label>
@@ -100,6 +107,10 @@
                     <div>
                         <p class="text-gray-500">Nome Completo</p>
                         <p class="font-medium text-gray-800 mt-1">{{ patient().name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500">CPF</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ formatCpf(patient().id) }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Idade</p>
