@@ -16,7 +16,7 @@ interface ContextNavItem {
 })
 export class PatientContextComponent {
   private patientDataService = inject(PatientDataService);
-  patient = this.patientDataService.getPatientData();
+  patient = this.patientDataService.getCurrentPatient();
 
   contextNavItems = signal<ContextNavItem[]>([
     { label: 'Dashboard', path: 'dashboard' },

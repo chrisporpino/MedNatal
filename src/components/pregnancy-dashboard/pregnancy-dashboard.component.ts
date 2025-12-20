@@ -1,13 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject, AfterViewInit, ElementRef, viewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { PatientDataService } from '../../services/patient-data.service';
+import { PatientDataService, Patient } from '../../services/patient-data.service';
 import { D3Service } from '../../services/d3.service';
 
 @Component({
   selector: 'app-pregnancy-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './pregnancy-dashboard.component.html',
   providers: [D3Service],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,7 +15,7 @@ export class PregnancyDashboardComponent implements AfterViewInit {
   private patientDataService = inject(PatientDataService);
   private d3Service = inject(D3Service);
 
-  patient = this.patientDataService.getPatientData();
+  patient = this.patientDataService.getCurrentPatient();
 
   weightChart = viewChild<ElementRef>('weightChart');
   uterineHeightChart = viewChild<ElementRef>('uterineHeightChart');
@@ -31,12 +30,15 @@ export class PregnancyDashboardComponent implements AfterViewInit {
 
   renderCharts() {
     if (this.chartsRendered()) return;
+    
+    const currentPatient = this.patient();
+    if (!currentPatient) return;
 
     const weightChartEl = this.weightChart();
     if (weightChartEl) {
       this.d3Service.createLineChart(
         weightChartEl.nativeElement,
-        this.patient().maternalWeightData,
+        currentPatient.maternal_weight_entries,
         'week',
         'weight',
         '#0d9488' // teal-600
@@ -47,7 +49,7 @@ export class PregnancyDashboardComponent implements AfterViewInit {
     if (uterineHeightChartEl) {
       this.d3Service.createLineChart(
         uterineHeightChartEl.nativeElement,
-        this.patient().uterineHeightData,
+        currentPatient.uterine_height_entries,
         'week',
         'height',
         '#22d3ee' // cyan-400
@@ -55,9 +57,5 @@ export class PregnancyDashboardComponent implements AfterViewInit {
     }
 
     this.chartsRendered.set(true);
-  }
-
-  togglePendingItem(itemId: number): void {
-    this.patientDataService.togglePendingItemStatus(itemId);
   }
 }

@@ -1,12 +1,9 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { PatientDataService, PatientListItem } from '../../services/patient-data.service';
 import { Subject, debounceTime, takeUntil, tap } from 'rxjs';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../services/toast.service';
-
-type SortColumn = 'name' | 'gestationalAge' | 'edd' | 'risk' | 'id';
 
 @Component({
   selector: 'app-patient-list',
@@ -15,28 +12,19 @@ type SortColumn = 'name' | 'gestationalAge' | 'edd' | 'risk' | 'id';
   templateUrl: './patient-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PatientListComponent implements OnDestroy {
+export class PatientListComponent implements OnInit, OnDestroy {
   private patientDataService = inject(PatientDataService);
   private router = inject(Router);
-  private toastService = inject(ToastService);
   
-  // --- State Signals ---
   patientList = this.patientDataService.getPatientList();
+  isLoading = this.patientDataService.isLoadingList;
+  
   activeFilter = signal<'Todas' | 'Alto Risco' | 'DPP Próxima'>('Todas');
   searchTerm = signal('');
   isSearching = signal(false);
 
-  // Sorting signals
-  sortColumn = signal<SortColumn>('name');
-  sortDirection = signal<'asc' | 'desc'>('asc');
-
-  // Pagination signals
-  currentPage = signal(1);
-  itemsPerPage = signal(10); 
-
-  // Modal signals
   isAddPatientModalOpen = signal(false);
-  isRegistering = signal(false);
+  showSuccessToast = signal(false);
 
   newPatientForm: FormGroup;
 
@@ -46,7 +34,7 @@ export class PatientListComponent implements OnDestroy {
   constructor() {
     this.newPatientForm = new FormGroup({
       fullName: new FormControl('', Validators.required),
-      cpf: new FormControl('', [Validators.required, Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)]),
+      cpf: new FormControl('', Validators.required),
       birthDate: new FormControl(''),
       contact: new FormControl(''),
       dum: new FormControl(''),
@@ -62,87 +50,38 @@ export class PatientListComponent implements OnDestroy {
     ).subscribe(searchValue => {
       this.searchTerm.set(searchValue);
       this.isSearching.set(false);
-      this.currentPage.set(1); // Reset to first page on new search
     });
   }
 
-  // --- Computed Data ---
-  paginatedList = computed(() => {
+  ngOnInit(): void {
+    // Clear any previously selected patient when returning to the list
+    this.patientDataService.setCurrentPatient('');
+    this.patientDataService.loadPatientList();
+  }
+
+  filteredList = computed(() => {
     const list = this.patientList();
     const filter = this.activeFilter();
     const term = this.searchTerm().toLowerCase();
-    const column = this.sortColumn();
-    const direction = this.sortDirection();
-    const page = this.currentPage();
-    const perPage = this.itemsPerPage();
 
-    // 1. Filtering
-    let filtered = list;
+    let filteredByStatus = list;
     if (filter === 'Alto Risco') {
-      filtered = list.filter(p => p.risk === 'Alto Risco');
-    } else if (filter === 'DPP Próxima') {
-      const today = new Date();
-      const thirtyDaysFromNow = new Date();
-      thirtyDaysFromNow.setDate(today.getDate() + 30);
-
-      filtered = list.filter(p => {
-        if (p.edd === 'N/A') return false;
-        const [day, month, year] = p.edd.split('/').map(Number);
-        const eddDate = new Date(year, month - 1, day);
-        return eddDate >= today && eddDate <= thirtyDaysFromNow;
-      });
+      filteredByStatus = list.filter(p => p.risk === 'Alto Risco');
     }
-
-    if (term) {
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        p.id.toLowerCase().includes(term)
-      );
-    }
+    // Add logic for 'DPP Próxima' if needed
     
-    // 2. Sorting
-    filtered.sort((a, b) => {
-        const aVal = a[column];
-        const bVal = b[column];
-        let comparison = 0;
-        if (aVal > bVal) comparison = 1;
-        else if (aVal < bVal) comparison = -1;
-        return direction === 'asc' ? comparison : -comparison;
-    });
-
-    // 3. Pagination
-    const start = (page - 1) * perPage;
-    const end = start + perPage;
-    
-    return {
-      data: filtered.slice(start, end),
-      totalItems: filtered.length,
-      totalPages: Math.ceil(filtered.length / perPage)
-    };
-  });
-
-  emptyState = computed(() => {
-    if (this.patientList().length === 0) {
-      return {
-        title: 'Nenhuma paciente cadastrada',
-        description: 'Comece cadastrando sua primeira gestante para iniciar o acompanhamento.',
-        showButton: true
-      };
+    if (!term) {
+      return filteredByStatus;
     }
-    if (this.paginatedList().totalItems === 0) {
-      return {
-        title: 'Nenhuma paciente encontrada',
-        description: 'Tente ajustar sua busca ou filtros para encontrar o que procura.',
-        showButton: false
-      };
-    }
-    return null; // Not empty
+
+    return filteredByStatus.filter(p => 
+      p.name.toLowerCase().includes(term) ||
+      p.cpf.toLowerCase().includes(term)
+    );
   });
   
-  // --- Event Handlers ---
   setFilter(filter: 'Todas' | 'Alto Risco' | 'DPP Próxima') {
     this.activeFilter.set(filter);
-    this.currentPage.set(1);
   }
 
   onSearch(event: Event): void {
@@ -150,68 +89,47 @@ export class PatientListComponent implements OnDestroy {
     this.searchSubject.next(value);
   }
 
-  sortBy(column: SortColumn): void {
-    if (this.sortColumn() === column) {
-      this.sortDirection.update(dir => dir === 'asc' ? 'desc' : 'asc');
-    } else {
-      this.sortColumn.set(column);
-      this.sortDirection.set('asc');
-    }
-    this.currentPage.set(1);
+  getRiskClass(risk: 'Alto Risco' | 'Baixo Risco'): string {
+    return risk === 'Alto Risco' 
+      ? 'bg-red-100 text-red-800' 
+      : 'bg-teal-100 text-teal-800';
   }
 
-  changePage(page: number): void {
-    this.currentPage.set(page);
+  openAddPatientModal(): void {
+    this.isAddPatientModalOpen.set(true);
   }
 
-  openAddPatientModal(): void { this.isAddPatientModalOpen.set(true); }
   closeAddPatientModal(): void {
     this.isAddPatientModalOpen.set(false);
     this.newPatientForm.reset();
   }
 
-  handleRegisterPatient(): void {
+  async handleRegisterPatient(): Promise<void> {
     if (this.newPatientForm.invalid) {
       this.newPatientForm.markAllAsTouched();
       return;
     }
-    this.isRegistering.set(true);
-    setTimeout(() => {
-      const formValue = this.newPatientForm.value;
-      const newPatient: PatientListItem = {
-        id: formValue.cpf,
-        name: formValue.fullName,
-        gestationalAge: '0s 0d',
-        edd: 'N/A',
-        risk: 'Baixo Risco',
-      };
-      this.patientDataService.addPatient(newPatient);
-      this.closeAddPatientModal();
-      this.toastService.show('Paciente Cadastrada!', 'A nova ficha já está disponível na lista.');
-      this.isRegistering.set(false);
-    }, 800);
+    
+    const newPatient = await this.patientDataService.addPatient(this.newPatientForm.value);
+
+    this.closeAddPatientModal();
+    
+    if (newPatient) {
+      this.showSuccessToast.set(true);
+      setTimeout(async () => {
+        this.showSuccessToast.set(false);
+        await this.navigateToPatient(newPatient.id);
+      }, 3000);
+    } else {
+      // Handle error case, e.g., show an error toast
+    }
   }
 
-  navigateToPatient(patientId: string): void {
-    this.patientDataService.setActivePatient(patientId);
-    this.router.navigate(['/app/dashboard']);
+  async navigateToPatient(patientId: string): Promise<void> {
+    await this.patientDataService.setCurrentPatient(patientId);
+    this.router.navigate(['/dashboard']);
   }
   
-  // --- UI Helpers ---
-  getRiskClass(risk: 'Alto Risco' | 'Baixo Risco'): string {
-    return risk === 'Alto Risco' ? 'bg-red-100 text-red-800' : 'bg-teal-100 text-teal-800';
-  }
-
-  formatCpf(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    if (value.length > 14) value = value.substring(0, 14);
-    this.newPatientForm.get('cpf')?.setValue(value, { emitEvent: false });
-  }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

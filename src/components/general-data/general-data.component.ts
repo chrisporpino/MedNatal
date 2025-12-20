@@ -1,10 +1,9 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, effect } from '@angular/core';
 import { PatientDataService, Patient, ObstetricHistory } from '../../services/patient-data.service';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { startWith } from 'rxjs';
-import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-general-data',
@@ -13,49 +12,41 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './general-data.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GeneralDataComponent implements OnInit {
+export class GeneralDataComponent {
   private patientDataService = inject(PatientDataService);
-  private toastService = inject(ToastService);
   
-  patient = this.patientDataService.getPatientData();
+  patient = this.patientDataService.getCurrentPatient();
   
   isPatientInfoEditing = signal(false);
   isCalculatorEditing = signal(false);
   isHistoryModalOpen = signal(false);
   editingHistoryIndex = signal<number | null>(null);
-  historyToDelete = signal<number | null>(null); 
-  
-  isPatientInfoSaving = signal(false);
-  isCalculatorSaving = signal(false);
-  isHistorySaving = signal(false);
+  historyToDelete = signal<number | null>(null);
 
   patientInfoForm = new FormGroup({
     name: new FormControl('', Validators.required),
-    id: new FormControl({ value: '', disabled: true }),
-    age: new FormControl<number | null>(null),
+    birth_date: new FormControl(''),
     profession: new FormControl(''),
-    contact: new FormGroup({
-      phone: new FormControl(''),
-      email: new FormControl('', [Validators.email])
-    }),
+    phone: new FormControl(''),
+    email: new FormControl('', [Validators.email]),
     address: new FormControl(''),
     parity: new FormGroup({
-      gestations: new FormControl<number | null>(null),
-      parities: new FormControl<number | null>(null),
-      abortions: new FormControl<number | null>(null)
+      gestations: new FormControl(null),
+      parities: new FormControl(null),
+      abortions: new FormControl(null)
     }),
     allergies: new FormControl(''),
-    medicationsInUse: new FormControl(''),
-    chronicDiseases: new FormControl(''),
+    medications_in_use: new FormControl(''),
+    chronic_diseases: new FormControl(''),
   });
 
   calculatorForm = new FormGroup({
     dum: new FormControl('', Validators.required),
-    dumIsReliable: new FormControl(false),
-    firstUltrasoundDate: new FormControl('', Validators.required),
-    firstUltrasoundGA: new FormControl('', [
+    dum_is_reliable: new FormControl(false),
+    first_ultrasound_date: new FormControl('', Validators.required),
+    first_ultrasound_ga: new FormControl('', [
       Validators.required,
-      Validators.pattern(/^\d+s\s\d+d$/)
+      Validators.pattern(/^\d+s\s\d+d$/) // e.g., "8s 1d"
     ]),
   });
   
@@ -64,133 +55,171 @@ export class GeneralDataComponent implements OnInit {
   ));
 
   historyForm = new FormGroup({
-    babyName: new FormControl('', Validators.required),
-    gestationalAgeAtBirth: new FormControl('', Validators.required),
-    babyWeight: new FormControl('', Validators.required),
-    deliveryType: new FormControl('Parto Normal', Validators.required)
+    baby_name: new FormControl('', Validators.required),
+    gestational_age_at_birth: new FormControl('', Validators.required),
+    baby_weight: new FormControl('', Validators.required),
+    delivery_type: new FormControl('Parto Normal', Validators.required)
   });
 
-  calculationBasis = computed(() => this.patient().gestationalCalculator.officialCalculationBasis);
+  constructor() {
+    effect(() => {
+      const p = this.patient();
+      if (p) {
+        this.patchFormsWithPatientData(p);
+      }
+    });
+  }
 
-  private calculateGestationalData(startDate: Date): { dpp: string; ig: string; weeks: number; days: number } {
+  private patchFormsWithPatientData(p: Patient): void {
+    this.patientInfoForm.patchValue({
+        name: p.name,
+        birth_date: p.birth_date,
+        profession: p.profession,
+        phone: p.phone,
+        email: p.email,
+        address: p.address,
+        parity: p.parity,
+        allergies: p.allergies,
+        medications_in_use: p.medications_in_use,
+        chronic_diseases: p.chronic_diseases
+    });
+    this.calculatorForm.patchValue(p.gestational_calculator);
+  }
+  
+  private calculateGestationalData(startDate: Date): { dpp: string; ig: string } {
     if (!startDate || isNaN(startDate.getTime())) {
-      return { dpp: 'N/A', ig: 'N/A', weeks: 0, days: 0 };
+      return { dpp: 'N/A', ig: 'N/A' };
     }
+
+    const dpp = new Date(startDate.getTime());
+    dpp.setDate(dpp.getDate() + 280); 
+
     const today = new Date();
-    const { weeks, days } = this.patientDataService.calculateGestationalAgeOnDate(startDate, today);
-    const edd = this.patientDataService.calculateEdd(startDate);
+    const diffTime = Math.abs(today.getTime() - startDate.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    const weeks = Math.floor(diffDays / 7);
+    const days = diffDays % 7;
 
     return {
-      dpp: edd,
-      ig: `${weeks} Semanas e ${days} Dias`,
-      weeks,
-      days
+      dpp: dpp.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
+      ig: `${weeks} Semanas e ${days} Dias`
     };
   }
 
-  private getStartDateFromUSG(usgDateStr: string, usgGaStr: string): Date | null {
-    if (!usgDateStr || !usgGaStr) return null;
-    const gaParts = usgGaStr.match(/(\d+)s.*?(\d+)d/);
-    if (!gaParts) return null;
-    const weeks = parseInt(gaParts[1], 10);
-    const days = parseInt(gaParts[2], 10);
-    const totalDaysGA = (weeks * 7) + days;
-    const usgDate = new Date(usgDateStr + 'T00:00:00');
-    const startDate = new Date(usgDate.getTime());
-    startDate.setDate(startDate.getDate() - totalDaysGA);
-    return startDate;
-  }
+  // --- Computations ---
+  calculationBasis = computed(() => this.patient()?.gestational_calculator.official_calculation_basis);
 
   dumResult = computed(() => {
-    const dumDate = new Date(this.patient().gestationalCalculator.dum + 'T00:00:00');
+    const dum = this.patient()?.gestational_calculator.dum;
+    if (!dum) return { dpp: 'N/A', ig: 'N/A' };
+    const dumDate = new Date(dum + 'T00:00:00');
     return this.calculateGestationalData(dumDate);
   });
 
   usgResult = computed(() => {
-    const { firstUltrasoundDate, firstUltrasoundGA } = this.patient().gestationalCalculator;
-    const startDate = this.getStartDateFromUSG(firstUltrasoundDate, firstUltrasoundGA);
-    return startDate ? this.calculateGestationalData(startDate) : { dpp: 'N/A', ig: 'N/A', weeks: 0, days: 0 };
+    const usgData = this.patient()?.gestational_calculator;
+    if (!usgData?.first_ultrasound_date || !usgData?.first_ultrasound_ga) {
+      return { dpp: 'N/A', ig: 'N/A' };
+    }
+    
+    const gaParts = usgData.first_ultrasound_ga.match(/(\d+)s.*?(\d+)d/);
+    if (!gaParts) return { dpp: 'N/A', ig: 'N/A' };
+
+    const weeks = parseInt(gaParts[1], 10);
+    const days = parseInt(gaParts[2], 10);
+    const totalDaysGA = (weeks * 7) + days;
+
+    const usgDate = new Date(usgData.first_ultrasound_date + 'T00:00:00');
+    const startDate = new Date(usgDate.getTime());
+    startDate.setDate(startDate.getDate() - totalDaysGA);
+
+    return this.calculateGestationalData(startDate);
   });
 
+  // --- Real-time Preview Computations ---
   dumPreviewResult = computed(() => {
-    // FIX: Cast the unknown form values to a known type to resolve property access errors.
-    const formValues = this.calculatorFormValues() as { dum?: string | null };
+    const formValues = this.calculatorFormValues();
     if (!formValues?.dum) return { dpp: 'N/A', ig: 'N/A' };
     const dumDate = new Date(formValues.dum + 'T00:00:00');
     return this.calculateGestationalData(dumDate);
   });
 
   usgPreviewResult = computed(() => {
-    // FIX: Cast the unknown form values and use nullish coalescing for safer property access.
-    const formValues = this.calculatorFormValues() as { firstUltrasoundDate?: string | null; firstUltrasoundGA?: string | null; };
-    const startDate = this.getStartDateFromUSG(formValues?.firstUltrasoundDate ?? '', formValues?.firstUltrasoundGA ?? '');
-    return startDate ? this.calculateGestationalData(startDate) : { dpp: 'N/A', ig: 'N/A' };
+    const formValues = this.calculatorFormValues();
+    if (!formValues?.first_ultrasound_date || !formValues?.first_ultrasound_ga) {
+      return { dpp: 'N/A', ig: 'N/A' };
+    }
+
+    const gaParts = formValues.first_ultrasound_ga.match(/(\d+)s.*?(\d+)d/);
+    if (!gaParts) return { dpp: 'N/A', ig: 'N/A' };
+
+    const weeks = parseInt(gaParts[1], 10);
+    const days = parseInt(gaParts[2], 10);
+    const totalDaysGA = (weeks * 7) + days;
+
+    const usgDate = new Date(formValues.first_ultrasound_date + 'T00:00:00');
+    const startDate = new Date(usgDate.getTime());
+    startDate.setDate(startDate.getDate() - totalDaysGA);
+
+    return this.calculateGestationalData(startDate);
   });
 
-  ngOnInit(): void { this.patchFormsWithPatientData(); }
 
-  private patchFormsWithPatientData(): void {
-    const p = this.patient();
-    this.patientInfoForm.patchValue({...p, id: this.formatCpf(p.id) });
-    this.calculatorForm.patchValue(p.gestationalCalculator);
-  }
-
+  // --- Edit Methods ---
   enablePatientInfoEdit(): void {
-    this.patientInfoForm.patchValue({...this.patient(), id: this.formatCpf(this.patient().id) });
-    this.isPatientInfoEditing.set(true);
+    if (this.patient()) {
+        this.patchFormsWithPatientData(this.patient()!);
+        this.isPatientInfoEditing.set(true);
+    }
   }
-  cancelPatientInfoEdit(): void { this.isPatientInfoEditing.set(false); }
 
-  savePatientInfo(): void {
-    if (this.patientInfoForm.invalid) return;
-    this.isPatientInfoSaving.set(true);
-    setTimeout(() => {
-      const formValue = this.patientInfoForm.getRawValue(); // Use getRawValue to include disabled fields like CPF
-      this.patientDataService.updatePatient({ ...formValue, id: formValue.id?.replace(/\D/g, '') } as Partial<Patient>);
-      this.isPatientInfoEditing.set(false);
-      this.isPatientInfoSaving.set(false);
-      this.toastService.show('Dados Salvos!', 'As informações da paciente foram atualizadas.');
-    }, 800);
+  cancelPatientInfoEdit(): void {
+    this.isPatientInfoEditing.set(false);
+  }
+
+  async savePatientInfo(): Promise<void> {
+    if (this.patientInfoForm.invalid || !this.patient()) return;
+    await this.patientDataService.updatePatient(this.patient()!.id, this.patientInfoForm.value);
+    this.isPatientInfoEditing.set(false);
   }
 
   enableCalculatorEdit(): void {
-    this.calculatorForm.patchValue(this.patient().gestationalCalculator);
-    this.isCalculatorEditing.set(true);
-  }
-  cancelCalculatorEdit(): void { this.isCalculatorEditing.set(false); }
-
-  saveCalculator(): void {
-    if (this.calculatorForm.invalid) return;
-    this.isCalculatorSaving.set(true);
-    setTimeout(() => {
-      const newCalculatorData = this.calculatorForm.value as Patient['gestationalCalculator'];
-      this.patientDataService.updatePatient({ gestationalCalculator: { ...this.patient().gestationalCalculator, ...newCalculatorData } });
-      this.updateOfficialPatientGA_EDD();
-      this.isCalculatorEditing.set(false);
-      this.isCalculatorSaving.set(false);
-      this.toastService.show('Calculadora Salva!', 'Os dados da calculadora gestacional foram atualizados.');
-    }, 800);
-  }
-  
-  setCalculationBasis(basis: 'DUM' | 'USG') {
-    this.patientDataService.updatePatient({ gestationalCalculator: { ...this.patient().gestationalCalculator, officialCalculationBasis: basis } });
-    this.updateOfficialPatientGA_EDD();
+    if(this.patient()) {
+        this.calculatorForm.patchValue(this.patient()!.gestational_calculator);
+        this.isCalculatorEditing.set(true);
+    }
   }
 
-  private updateOfficialPatientGA_EDD() {
-    const basis = this.patient().gestationalCalculator.officialCalculationBasis;
-    const result = basis === 'DUM' ? this.dumResult() : this.usgResult();
-    this.patientDataService.updatePatient({
-      gestationalAge: { weeks: result.weeks, days: result.days },
-      edd: result.dpp
+  cancelCalculatorEdit(): void {
+    this.isCalculatorEditing.set(false);
+  }
+
+  async saveCalculator(): Promise<void> {
+    if (this.calculatorForm.invalid || !this.patient()) return;
+    await this.patientDataService.updatePatient(this.patient()!.id, {
+      gestational_calculator: this.calculatorForm.value
+    });
+    this.isCalculatorEditing.set(false);
+  }
+
+  async setCalculationBasis(basis: 'DUM' | 'USG'): Promise<void> {
+    if (!this.patient()) return;
+    await this.patientDataService.updatePatient(this.patient()!.id, {
+        gestational_calculator: { 
+            ...this.patient()!.gestational_calculator, 
+            official_calculation_basis: basis 
+        }
     });
   }
 
+  // --- History Modal Methods ---
   openHistoryModal(): void {
     this.editingHistoryIndex.set(null);
-    this.historyForm.reset({ deliveryType: 'Parto Normal' });
+    this.historyForm.reset({ delivery_type: 'Parto Normal' });
     this.isHistoryModalOpen.set(true);
   }
+
   closeHistoryModal(): void {
     this.isHistoryModalOpen.set(false);
     this.editingHistoryIndex.set(null);
@@ -198,23 +227,13 @@ export class GeneralDataComponent implements OnInit {
 
   saveHistory(): void {
     if (this.historyForm.invalid) return;
-    this.isHistorySaving.set(true);
-    setTimeout(() => {
-      const historyData = this.historyForm.value as ObstetricHistory;
-      const index = this.editingHistoryIndex();
-      if (index !== null) {
-        this.patientDataService.updateObstetricHistory(index, historyData);
-      } else {
-        this.patientDataService.addObstetricHistory(historyData);
-      }
-      this.isHistorySaving.set(false);
-      this.closeHistoryModal();
-      this.toastService.show('Histórico Salvo!', 'O registro de parto foi salvo com sucesso.');
-    }, 800);
+    // TODO: Implement Supabase call for add/update history
+    console.log("Saving history", this.historyForm.value);
+    this.closeHistoryModal();
   }
 
   editHistory(index: number): void {
-    const historyItem = this.patient().obstetricHistory[index];
+    const historyItem = this.patient()?.obstetric_histories[index];
     if (historyItem) {
       this.editingHistoryIndex.set(index);
       this.historyForm.patchValue(historyItem);
@@ -222,40 +241,20 @@ export class GeneralDataComponent implements OnInit {
     }
   }
 
-  requestDeleteHistory(index: number): void { this.historyToDelete.set(index); }
+  requestDeleteHistory(index: number): void {
+    this.historyToDelete.set(index);
+  }
+  
   confirmDeleteHistory(): void {
     const index = this.historyToDelete();
     if (index !== null) {
-      this.patientDataService.deleteObstetricHistory(index);
-      this.toastService.show('Registro Excluído!', 'O parto anterior foi removido do histórico.');
+      // TODO: Implement Supabase call for delete
+      console.log("Deleting history at index", index);
     }
     this.cancelDeleteHistory();
   }
-  cancelDeleteHistory(): void { this.historyToDelete.set(null); }
   
-  // Input Formatters
-  formatCpf(value: string): string {
-    if (!value) return '';
-    let cpf = value.replace(/\D/g, '');
-    if (cpf.length > 11) cpf = cpf.substring(0, 11);
-    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
-    cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
-    cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    return cpf;
-  }
-
-  formatPhone(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
-    if (value.length > 11) value = value.substring(0, 11);
-    value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-    value = value.replace(/(\d{5})(\d)/, '$1-$2');
-    this.patientInfoForm.get('contact.phone')?.setValue(value, { emitEvent: false });
-  }
-
-  onCpfInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const formatted = this.formatCpf(input.value);
-    this.patientInfoForm.get('id')?.setValue(formatted, { emitEvent: false });
+  cancelDeleteHistory(): void {
+    this.historyToDelete.set(null);
   }
 }

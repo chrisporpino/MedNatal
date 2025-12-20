@@ -1,143 +1,52 @@
-import { Component, ChangeDetectionStrategy, inject, signal, AfterViewInit, ElementRef, viewChild, OnDestroy, effect } from '@angular/core';
-import { PatientDataService, EcoData } from '../../services/patient-data.service';
+import { Component, ChangeDetectionStrategy, inject, signal, AfterViewInit, ElementRef, viewChild } from '@angular/core';
+import { PatientDataService } from '../../services/patient-data.service';
 import { D3Service } from '../../services/d3.service';
-import * as d3 from 'd3';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-ecos',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [CommonModule],
   providers: [D3Service],
   templateUrl: './ecos.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EcosComponent implements AfterViewInit, OnDestroy {
+export class EcosComponent implements AfterViewInit {
   private patientDataService = inject(PatientDataService);
   private d3Service = inject(D3Service);
-  private toastService = inject(ToastService);
 
-  patient = this.patientDataService.getPatientData();
-  
-  // State management signals
+  patient = this.patientDataService.getCurrentPatient();
   isModalOpen = signal(false);
-  editingEco = signal<EcoData | null>(null);
-  ecoToDelete = signal<EcoData | null>(null);
-  isSaving = signal(false);
-
-  growthChart = viewChild.required<ElementRef>('growthChart');
-
-  // Form for adding/editing ECOs
-  ecoForm = new FormGroup({
-    date: new FormControl('', Validators.required),
-    gestationalAge: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
-    estimatedFetalWeight: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
-    fetalHeartRate: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
-    placentaPresentation: new FormControl(''),
-    // These are extra fields from the modal that are not in the EcoData interface yet
-    // For now, they are just for show in the UI.
-    abdominalCircumference: new FormControl<number | null>(null),
-    amnioticFluidIndex: new FormControl<number | null>(null),
-    presentation: new FormControl('Cefálica'),
-    observations: new FormControl(''),
-  });
-
-  constructor() {
-    // Effect to re-render the chart whenever the patient's ECO data changes
-    effect(() => {
-      const patientData = this.patient();
-      // This effect runs once initially, but ngAfterViewInit might not have run yet.
-      // So we check if the viewChild is ready.
-      if (this.growthChart()) {
-         this.renderChart(patientData.ecos, patientData.fetalGrowthPercentiles);
-      }
-    });
-  }
+  
+  growthChart = viewChild<ElementRef>('growthChart');
+  chartRendered = signal(false);
 
   ngAfterViewInit(): void {
-    // Initial chart render
-    this.renderChart(this.patient().ecos, this.patient().fetalGrowthPercentiles);
+    setTimeout(() => this.renderChart(), 0);
   }
 
-  ngOnDestroy(): void {
-    // Clean up the D3 tooltip to prevent memory leaks
-    d3.select('.d3-tooltip').remove();
-  }
+  renderChart(): void {
+    if (this.chartRendered()) return;
 
-  private renderChart(ecos: EcoData[], percentiles: any[]): void {
-    const chartEl = this.growthChart().nativeElement;
+    const currentPatient = this.patient();
+    if (!currentPatient) return;
+    
+    const chartEl = this.growthChart();
     if (chartEl) {
-      this.d3Service.createGrowthChart(chartEl, ecos, percentiles);
+      this.d3Service.createGrowthChart(
+        chartEl.nativeElement,
+        currentPatient.ultrasounds,
+        currentPatient.fetalGrowthPercentiles
+      );
+      this.chartRendered.set(true);
     }
   }
 
-  openModal(eco: EcoData | null = null): void {
-    if (eco) {
-      this.editingEco.set(eco);
-      this.ecoForm.patchValue({
-        ...eco,
-        presentation: 'Cefálica', // default as it is not in the model
-        abdominalCircumference: null,
-        amnioticFluidIndex: null,
-        observations: eco.placentaPresentation,
-      });
-    } else {
-      this.editingEco.set(null);
-      this.ecoForm.reset({ presentation: 'Cefálica'});
-    }
+  openModal(): void {
     this.isModalOpen.set(true);
   }
 
   closeModal(): void {
     this.isModalOpen.set(false);
-  }
-
-  saveEco(): void {
-    if (this.ecoForm.invalid) {
-      this.ecoForm.markAllAsTouched();
-      return;
-    }
-
-    this.isSaving.set(true);
-    setTimeout(() => {
-      const formValue = this.ecoForm.value;
-      const ecoData = {
-        date: formValue.date!,
-        gestationalAge: formValue.gestationalAge!,
-        estimatedFetalWeight: formValue.estimatedFetalWeight!,
-        fetalHeartRate: formValue.fetalHeartRate!,
-        placentaPresentation: `${formValue.presentation}, ${formValue.observations}`
-      };
-
-      const currentEco = this.editingEco();
-      if (currentEco) {
-        this.patientDataService.updateEco({ ...currentEco, ...ecoData });
-      } else {
-        this.patientDataService.addEco(ecoData);
-      }
-      this.toastService.show('ECO Salvo!', 'O registro do ultrassom foi salvo com sucesso.');
-      this.isSaving.set(false);
-      this.closeModal();
-    }, 800);
-  }
-  
-  // --- Delete ECO Methods ---
-  requestDeleteEco(eco: EcoData): void {
-    this.ecoToDelete.set(eco);
-  }
-
-  confirmDeleteEco(): void {
-    const eco = this.ecoToDelete();
-    if (eco) {
-      this.patientDataService.deleteEco(eco.id);
-      this.toastService.show('ECO Excluído!', `O registro de ${new Date(eco.date + 'T00:00:00').toLocaleDateString('pt-BR')} foi removido.`);
-    }
-    this.cancelDeleteEco();
-  }
-
-  cancelDeleteEco(): void {
-    this.ecoToDelete.set(null);
   }
 }

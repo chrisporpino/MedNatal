@@ -2,7 +2,6 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@a
 import { PatientDataService, Exam } from '../../services/patient-data.service';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-exames',
@@ -13,8 +12,7 @@ import { ToastService } from '../../services/toast.service';
 })
 export class ExamsComponent {
   private patientDataService = inject(PatientDataService);
-  private toastService = inject(ToastService);
-  patient = this.patientDataService.getPatientData();
+  patient = this.patientDataService.getCurrentPatient();
 
   // Modal and state management signals
   isExamModalOpen = signal(false);
@@ -22,36 +20,36 @@ export class ExamsComponent {
   examToDelete = signal<Exam | null>(null);
   selectedFile = signal<File | null>(null);
   isAlertVisible = signal(true);
-  isSaving = signal(false);
 
   // Filter signals
   searchTerm = signal('');
   selectedFilter = signal('Todos'); // 'Todos', '1', '2', '3'
 
-  alert = computed(() => this.patient().examAlert);
+  alert = computed(() => this.patient()?.examAlert);
+  exams = computed(() => this.patient()?.exams ?? []);
 
   // Form for adding/editing exams
   examForm = new FormGroup({
     type: new FormControl('', Validators.required),
     date: new FormControl('', Validators.required),
     status: new FormControl<'Normal' | 'Alterado' | 'Pendente'>('Pendente', Validators.required),
-    mainResult: new FormControl(''),
-    gestationalAgeAtCollection: new FormControl(''),
+    main_result: new FormControl(''),
+    gestational_age_at_collection: new FormControl(''),
   });
 
   // Computed signal for filtered exams
   filteredExams = computed(() => {
-    const exams = this.patient().exams;
+    const allExams = this.exams();
     const term = this.searchTerm().toLowerCase();
     const filter = this.selectedFilter();
 
-    let filtered = exams;
+    let filtered = allExams;
 
     // Filter by trimester
     if (filter !== 'Todos') {
       const trimester = parseInt(filter, 10);
-      filtered = exams.filter(exam => {
-        const match = exam.gestationalAgeAtCollection.match(/(\d+)/);
+      filtered = allExams.filter(exam => {
+        const match = exam.gestational_age_at_collection.match(/(\d+)/);
         if (!match) return false;
         const weeks = parseInt(match[0], 10);
         if (trimester === 1) return weeks <= 13;
@@ -65,7 +63,7 @@ export class ExamsComponent {
     if (term) {
       filtered = filtered.filter(exam =>
         exam.type.toLowerCase().includes(term) ||
-        exam.mainResult.toLowerCase().includes(term)
+        (exam.main_result && exam.main_result.toLowerCase().includes(term))
       );
     }
 
@@ -106,29 +104,10 @@ export class ExamsComponent {
       return;
     }
 
-    this.isSaving.set(true);
-    setTimeout(() => {
-      const formValue = this.examForm.value;
-      const examData = {
-        type: formValue.type!,
-        date: formValue.date!,
-        status: formValue.status!,
-        mainResult: formValue.mainResult!,
-        reportUrl: this.selectedFile() ? '#' : (this.editingExam()?.reportUrl || undefined), // Keep existing URL if not changed
-        gestationalAgeAtCollection: formValue.gestationalAgeAtCollection!,
-      };
+    // TODO: Implement Supabase call
+    console.log('Saving exam:', this.examForm.value);
 
-      const currentExam = this.editingExam();
-      if (currentExam) {
-        this.patientDataService.updateExam({ ...currentExam, ...examData });
-      } else {
-        this.patientDataService.addExam(examData);
-      }
-
-      this.toastService.show('Exame Salvo!', 'O registro do exame foi salvo com sucesso.');
-      this.isSaving.set(false);
-      this.closeExamModal();
-    }, 800);
+    this.closeExamModal();
   }
 
   // --- File Handling ---
@@ -178,8 +157,8 @@ export class ExamsComponent {
   confirmDeleteExam(): void {
     const exam = this.examToDelete();
     if (exam) {
-      this.patientDataService.deleteExam(exam.id);
-      this.toastService.show('Exame Excluído!', `O exame ${exam.type} foi removido com sucesso.`);
+      // TODO: Implement Supabase call
+      console.log('Deleting exam:', exam.id);
     }
     this.cancelDeleteExam();
   }

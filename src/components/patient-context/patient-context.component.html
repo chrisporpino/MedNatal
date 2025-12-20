@@ -4,7 +4,7 @@
   <!-- Contextual Header -->
   <div class="h-16 flex-shrink-0 flex items-center justify-between pt-4 pl-6 pr-2 pb-4">
       <div class="flex items-center space-x-2">
-          <a routerLink="/app/pacientes" class="text-gray-500 hover:text-gray-800 p-2 -ml-2 rounded-full">
+          <a routerLink="/pacientes" class="text-gray-500 hover:text-gray-800 p-2 -ml-2 rounded-full">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
               </svg>
@@ -15,15 +15,16 @@
 
   <!-- Card container with padding -->
   <div class="flex-1 pl-6 pb-6 pr-2 min-h-0">
+    @if (patient(); as p) {
     <!-- The actual card element. -->
     <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col">
 
       <!-- Patient Header section -->
       <div class="p-6 text-center border-b border-gray-200">
-        <img [src]="patient().avatarUrl" alt="Foto da Paciente" class="w-28 h-28 rounded-full object-cover mx-auto">
+        <img [src]="p.avatar_url" alt="Foto da Paciente" class="w-28 h-28 rounded-full object-cover mx-auto">
         <div class="pt-4">
-          <h2 class="text-xl font-bold text-gray-800">{{ patient().name }}</h2>
-          <p class="text-sm text-gray-500">CPF: {{ patient().id }}</p>
+          <h2 class="text-xl font-bold text-gray-800">{{ p.name }}</h2>
+          <p class="text-sm text-gray-500">CPF: {{ p.cpf }}</p>
         </div>
       </div>
       
@@ -32,7 +33,7 @@
         <ul class="space-y-2">
           @for(item of contextNavItems(); track item.label) {
             <li>
-              <a [routerLink]="item.path !== '#' ? ['/app', item.path] : null"
+              <a [routerLink]="item.path !== '#' ? [item.path] : null"
                  routerLinkActive
                  #rla="routerLinkActive"
                  class="relative flex items-center px-4 py-3 text-md font-medium rounded-lg transition-all duration-200"
@@ -57,5 +58,10 @@
       </nav>
 
     </div>
+    } @else {
+      <div class="w-full h-full bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center justify-center text-center p-6">
+          <p class="text-gray-500">Selecione uma paciente na lista para ver os detalhes.</p>
+      </div>
+    }
   </div>
 </div>

@@ -1,4 +1,5 @@
 <main class="mt-[56px] pr-8 pb-8 pl-4">
+  @if (patient(); as p) {
   <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
@@ -19,17 +20,7 @@
               @if (isPatientInfoEditing()) {
                 <div class="flex items-center space-x-3">
                   <button type="button" (click)="cancelPatientInfoEdit()" class="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
-                  <button type="submit" (click)="savePatientInfo()" [disabled]="patientInfoForm.invalid || isPatientInfoSaving()" class="w-32 flex justify-center items-center px-4 py-2 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300 disabled:cursor-not-allowed">
-                    @if(isPatientInfoSaving()) {
-                      <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Salvando...</span>
-                    } @else {
-                       <span>Salvar</span>
-                    }
-                  </button>
+                  <button type="submit" (click)="savePatientInfo()" [disabled]="patientInfoForm.invalid" class="px-4 py-2 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300 disabled:cursor-not-allowed">Salvar</button>
                 </div>
               } @else {
                 <button type="button" (click)="enablePatientInfoEdit()" class="flex items-center text-sm font-semibold text-sky-600 px-3 py-1 rounded-md hover:bg-sky-50 transition-colors">
@@ -44,37 +35,24 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
                   <!-- Form Inputs for Editing -->
                   <div>
-                      <label class="block font-medium text-gray-700">Nome Completo *</label>
+                      <label class="block font-medium text-gray-700">Nome Completo</label>
                       <input type="text" formControlName="name" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
                        [class.border-red-500]="patientInfoForm.get('name')?.invalid && patientInfoForm.get('name')?.touched">
-                      @if(patientInfoForm.get('name')?.hasError('required') && patientInfoForm.get('name')?.touched) {
-                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-                      }
-                  </div>
-                   <div>
-                      <label class="block font-medium text-gray-700">CPF</label>
-                      <input type="text" formControlName="id" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500 bg-gray-100 cursor-not-allowed">
                   </div>
                   <div>
-                      <label class="block font-medium text-gray-700">Idade</label>
-                      <input type="number" formControlName="age" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      <label class="block font-medium text-gray-700">Data de Nascimento</label>
+                      <input type="date" formControlName="birth_date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
                   <div>
                       <label class="block font-medium text-gray-700">Profissão</label>
                       <input type="text" formControlName="profession" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
-                  <div formGroupName="contact" class="md:col-span-2 grid grid-cols-2 gap-4">
-                      <div>
-                        <label class="block font-medium text-gray-700">Telefone</label>
-                        <input type="text" formControlName="phone" placeholder="(00) 00000-0000" (input)="formatPhone($event)" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
-                      </div>
-                       <div>
-                        <label class="block font-medium text-gray-700">Email</label>
-                        <input type="email" formControlName="email" placeholder="email@exemplo.com" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-                         [class.border-red-500]="patientInfoForm.get('contact.email')?.invalid && patientInfoForm.get('contact.email')?.touched">
-                        @if(patientInfoForm.get('contact.email')?.hasError('email') && patientInfoForm.get('contact.email')?.touched) {
-                          <p class="text-xs text-red-600 mt-1">Formato de email inválido.</p>
-                        }
+                  <div>
+                      <label class="block font-medium text-gray-700">Contato</label>
+                      <div class="flex space-x-2 mt-1">
+                        <input type="text" formControlName="phone" placeholder="Telefone" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                        <input type="email" formControlName="email" placeholder="Email" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                         [class.border-red-500]="patientInfoForm.get('email')?.invalid && patientInfoForm.get('email')?.touched">
                       </div>
                   </div>
                   <div class="md:col-span-2">
@@ -101,11 +79,11 @@
                   </div>
                   <div class="md:col-span-2">
                       <label class="block font-medium text-gray-700">Medicações em Uso</label>
-                      <input type="text" formControlName="medicationsInUse" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      <input type="text" formControlName="medications_in_use" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
                   <div class="md:col-span-2">
                       <label class="block font-medium text-gray-700">Doenças Crônicas</label>
-                      <input type="text" formControlName="chronicDiseases" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+                      <input type="text" formControlName="chronic_diseases" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
                 </div>
               </form>
@@ -116,27 +94,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <div>
                         <p class="text-gray-500">Nome Completo</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500">CPF</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ formatCpf(patient().id) }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.name }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Idade</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().age }} anos</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.age }} anos</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Profissão</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().profession }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.profession }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Contato</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().contact.phone }} / {{ patient().contact.email }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.phone }} / {{ p.email }}</p>
                     </div>
                     <div class="md:col-span-2">
                         <p class="text-gray-500">Endereço</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().address }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.address }}</p>
                     </div>
                 </div>
 
@@ -146,15 +120,15 @@
                 <div class="grid grid-cols-3 gap-4 text-center">
                     <div>
                         <p class="text-gray-500">Gestações (G)</p>
-                        <p class="font-bold text-lg text-gray-800 mt-1">{{ patient().parity.gestations }}</p>
+                        <p class="font-bold text-lg text-gray-800 mt-1">{{ p.parity.gestations }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Partos (P)</p>
-                        <p class="font-bold text-lg text-gray-800 mt-1">{{ patient().parity.parities }}</p>
+                        <p class="font-bold text-lg text-gray-800 mt-1">{{ p.parity.parities }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Abortos (A)</p>
-                        <p class="font-bold text-lg text-gray-800 mt-1">{{ patient().parity.abortions }}</p>
+                        <p class="font-bold text-lg text-gray-800 mt-1">{{ p.parity.abortions }}</p>
                     </div>
                 </div>
 
@@ -164,15 +138,15 @@
                 <div class="space-y-4">
                     <div>
                         <p class="text-gray-500">Alergias</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().allergies }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.allergies }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Medicações em Uso</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().medicationsInUse }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.medications_in_use }}</p>
                     </div>
                     <div>
                         <p class="text-gray-500">Doenças Crônicas</p>
-                        <p class="font-medium text-gray-800 mt-1">{{ patient().chronicDiseases }}</p>
+                        <p class="font-medium text-gray-800 mt-1">{{ p.chronic_diseases }}</p>
                     </div>
                 </div>
               </div>
@@ -198,12 +172,12 @@
               </tr>
             </thead>
             <tbody>
-              @for(item of patient().obstetricHistory; track $index; let i = $index) {
+              @for(item of p.obstetric_histories; track item.id; let i = $index) {
                 <tr class="bg-white border-b hover:bg-gray-50">
-                  <td class="px-4 py-3 font-medium text-gray-900">{{ item.babyName }}</td>
-                  <td class="px-4 py-3">{{ item.gestationalAgeAtBirth }}</td>
-                  <td class="px-4 py-3">{{ item.babyWeight }}</td>
-                  <td class="px-4 py-3">{{ item.deliveryType }}</td>
+                  <td class="px-4 py-3 font-medium text-gray-900">{{ item.baby_name }}</td>
+                  <td class="px-4 py-3">{{ item.gestational_age_at_birth }}</td>
+                  <td class="px-4 py-3">{{ item.baby_weight }}</td>
+                  <td class="px-4 py-3">{{ item.delivery_type }}</td>
                   <td class="px-4 py-3">
                     <div class="flex justify-center items-center space-x-2">
                       <button (click)="editHistory(i)" class="text-gray-400 hover:text-blue-600 p-1 rounded-md">
@@ -231,17 +205,7 @@
               @if (isCalculatorEditing()) {
                 <div class="flex items-center space-x-3">
                   <button type="button" (click)="cancelCalculatorEdit()" class="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
-                  <button type="button" (click)="saveCalculator()" [disabled]="calculatorForm.invalid || isCalculatorSaving()" class="w-32 flex justify-center items-center px-4 py-2 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300 disabled:cursor-not-allowed">
-                     @if(isCalculatorSaving()) {
-                      <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Salvando...</span>
-                    } @else {
-                       <span>Salvar</span>
-                    }
-                  </button>
+                  <button type="button" (click)="saveCalculator()" [disabled]="calculatorForm.invalid" class="px-4 py-2 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300 disabled:cursor-not-allowed">Salvar</button>
                 </div>
               } @else {
                 <button type="button" (click)="enableCalculatorEdit()" class="flex items-center text-sm font-semibold text-sky-600 px-3 py-1 rounded-md hover:bg-sky-50 transition-colors">
@@ -256,34 +220,19 @@
                   <!-- DUM Input -->
                   <div>
                       <label class="block text-sm font-medium text-gray-700">DUM (Data da Última Menstruação)</label>
-                      <input type="date" formControlName="dum" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-                       [class.border-red-500]="calculatorForm.get('dum')?.invalid && calculatorForm.get('dum')?.touched">
-                      @if(calculatorForm.get('dum')?.hasError('required') && calculatorForm.get('dum')?.touched) {
-                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-                      }
+                      <input type="date" formControlName="dum" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500" >
                   </div>
                   <div class="flex items-center">
-                    <input id="dum-confiavel" type="checkbox" formControlName="dumIsReliable" class="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+                    <input id="dum-confiavel" type="checkbox" formControlName="dum_is_reliable" class="h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
                     <label for="dum-confiavel" class="ml-2 block text-sm text-gray-900">DUM Confiável</label>
                   </div>
                   <div>
                       <label class="block text-sm font-medium text-gray-700">Data do 1º USG</label>
-                      <input type="date" formControlName="firstUltrasoundDate" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-                       [class.border-red-500]="calculatorForm.get('firstUltrasoundDate')?.invalid && calculatorForm.get('firstUltrasoundDate')?.touched">
-                       @if(calculatorForm.get('firstUltrasoundDate')?.hasError('required') && calculatorForm.get('firstUltrasoundDate')?.touched) {
-                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-                      }
+                      <input type="date" formControlName="first_ultrasound_date" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
                   <div>
                       <label class="block text-sm font-medium text-gray-700">IG no 1º USG (Semanas e Dias)</label>
-                      <input type="text" formControlName="firstUltrasoundGA" placeholder="Ex: 8s 1d" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-                       [class.border-red-500]="calculatorForm.get('firstUltrasoundGA')?.invalid && calculatorForm.get('firstUltrasoundGA')?.touched">
-                       @if(calculatorForm.get('firstUltrasoundGA')?.hasError('required') && calculatorForm.get('firstUltrasoundGA')?.touched) {
-                        <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-                      }
-                      @if(calculatorForm.get('firstUltrasoundGA')?.hasError('pattern') && calculatorForm.get('firstUltrasoundGA')?.touched) {
-                        <p class="text-xs text-red-600 mt-1">Formato inválido. Use: 8s 1d</p>
-                      }
+                      <input type="text" formControlName="first_ultrasound_ga" placeholder="Ex: 8s 1d" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
                   </div>
               </div>
                </form>
@@ -291,15 +240,15 @@
               <div class="space-y-4">
                  <div>
                       <label class="block text-sm font-medium text-gray-700">DUM (Data da Última Menstruação)</label>
-                      <p class="mt-1 text-gray-800">{{ patient().gestationalCalculator.dum | date: 'dd/MM/yyyy' }} ({{ patient().gestationalCalculator.dumIsReliable ? 'Confiável' : 'Não Confiável' }})</p>
+                      <p class="mt-1 text-gray-800">{{ p.gestational_calculator.dum | date: 'dd/MM/yyyy' }} ({{ p.gestational_calculator.dum_is_reliable ? 'Confiável' : 'Não Confiável' }})</p>
                   </div>
                   <div>
                       <label class="block text-sm font-medium text-gray-700">Data do 1º USG</label>
-                      <p class="mt-1 text-gray-800">{{ patient().gestationalCalculator.firstUltrasoundDate | date: 'dd/MM/yyyy' }}</p>
+                      <p class="mt-1 text-gray-800">{{ p.gestational_calculator.first_ultrasound_date | date: 'dd/MM/yyyy' }}</p>
                   </div>
                   <div>
                       <label class="block text-sm font-medium text-gray-700">IG no 1º USG (Semanas e Dias)</label>
-                      <p class="mt-1 text-gray-800">{{ patient().gestationalCalculator.firstUltrasoundGA }}</p>
+                      <p class="mt-1 text-gray-800">{{ p.gestational_calculator.first_ultrasound_ga }}</p>
                   </div>
               </div>
             }
@@ -347,6 +296,7 @@
 
     </div>
   </div>
+  }
 
   <!-- Add/Edit Obstetric History Modal -->
   @if(isHistoryModalOpen()) {
@@ -366,33 +316,21 @@
         <div class="space-y-4">
           <div>
             <label for="babyName" class="block text-sm font-medium text-gray-700 mb-1">Nome do Bebê</label>
-            <input type="text" id="babyName" formControlName="babyName" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-             [class.border-red-500]="historyForm.get('babyName')?.invalid && historyForm.get('babyName')?.touched">
-            @if(historyForm.get('babyName')?.hasError('required') && historyForm.get('babyName')?.touched) {
-              <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-            }
+            <input type="text" id="babyName" formControlName="baby_name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label for="gaAtBirth" class="block text-sm font-medium text-gray-700 mb-1">IG Nasc. (Ex: 39s 2d)</label>
-              <input type="text" id="gaAtBirth" formControlName="gestationalAgeAtBirth" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-               [class.border-red-500]="historyForm.get('gestationalAgeAtBirth')?.invalid && historyForm.get('gestationalAgeAtBirth')?.touched">
-              @if(historyForm.get('gestationalAgeAtBirth')?.hasError('required') && historyForm.get('gestationalAgeAtBirth')?.touched) {
-                <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-              }
+              <input type="text" id="gaAtBirth" formControlName="gestational_age_at_birth" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
             </div>
             <div>
               <label for="babyWeight" class="block text-sm font-medium text-gray-700 mb-1">Peso (Ex: 3.450g)</label>
-              <input type="text" id="babyWeight" formControlName="babyWeight" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
-               [class.border-red-500]="historyForm.get('babyWeight')?.invalid && historyForm.get('babyWeight')?.touched">
-              @if(historyForm.get('babyWeight')?.hasError('required') && historyForm.get('babyWeight')?.touched) {
-                <p class="text-xs text-red-600 mt-1">Este campo é obrigatório.</p>
-              }
+              <input type="text" id="babyWeight" formControlName="baby_weight" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
             </div>
           </div>
           <div>
             <label for="deliveryType" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Parto</label>
-            <select id="deliveryType" formControlName="deliveryType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
+            <select id="deliveryType" formControlName="delivery_type" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500">
               <option>Parto Normal</option>
               <option>Parto Fórceps</option>
               <option>Parto Cesárea</option>
@@ -401,16 +339,8 @@
         </div>
         <div class="mt-8 flex justify-end space-x-3">
           <button type="button" (click)="closeHistoryModal()" class="px-5 py-2.5 text-sm font-semibold bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Cancelar</button>
-          <button type="submit" [disabled]="historyForm.invalid || isHistorySaving()" class="w-48 flex justify-center items-center px-5 py-2.5 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300">
-            @if(isHistorySaving()) {
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Salvando...</span>
-            } @else {
-              <span>{{ editingHistoryIndex() !== null ? 'Salvar Alterações' : 'Adicionar' }}</span>
-            }
+          <button type="submit" [disabled]="historyForm.invalid" class="px-5 py-2.5 text-sm font-semibold bg-teal-500 text-white rounded-lg shadow-sm hover:bg-teal-600 disabled:bg-teal-300">
+            {{ editingHistoryIndex() !== null ? 'Salvar Alterações' : 'Adicionar' }}
           </button>
         </div>
       </form>
